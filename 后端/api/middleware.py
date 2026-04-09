@@ -58,5 +58,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # 写入 request.state 供后续 handler 使用
         request.state.user_id = user_id
         request.state.tenant_id = payload.get("tenant_id", "")
+        request.state.app_id = request.headers.get("X-App-ID", "unknown")
 
         return await call_next(request)

@@ -1,5 +1,6 @@
 """Auth API — 扫码登录 + 会话管理"""
 import secrets
+import time
 
 from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import select
@@ -81,8 +82,23 @@ async def wechat_callback(code: str, state: str):
 
 @router.post("/heartbeat")
 async def heartbeat(request: Request):
-    """心跳保活"""
+    """心跳保活 — 滑动过期：距过期 < 1 天时自动签发新 Token"""
     user_id = getattr(request.state, "user_id", None)
+    tenant_id = getattr(request.state, "tenant_id", "")
+
+    # 检查 Token 是否即将过期
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        payload = token_mgr.verify_token(auth_header[7:])
+        if payload:
+            exp = payload.get("exp", 0)
+            now = time.time()
+            remaining = exp - now
+            # 距过期 < 1 天 → 签发新 Token
+            if 0 < remaining < 86400:
+                new_token = token_mgr.create_token(user_id=user_id, tenant_id=tenant_id)
+                return {"data": {"alive": True, "user_id": user_id, "token": new_token}}
+
     return {"data": {"alive": True, "user_id": user_id}}
 
 

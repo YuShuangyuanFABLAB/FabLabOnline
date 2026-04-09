@@ -17,8 +17,9 @@ app.include_router(v1_router)
 @app.on_event("startup")
 async def startup_event():
     import asyncio
-    from domains.events.store import _event_writer_loop
+    from domains.events.store import _event_writer_loop, ensure_future_partitions
     asyncio.create_task(_event_writer_loop())
+    await ensure_future_partitions()
 
 
 @app.get("/health")
