@@ -37,6 +37,21 @@ const router = createRouter({
           name: 'audit',
           component: () => import('../views/AuditView.vue'),
         },
+        {
+          path: 'roles',
+          name: 'roles',
+          component: () => import('../views/RolesView.vue'),
+        },
+        {
+          path: 'apps',
+          name: 'apps',
+          component: () => import('../views/AppsView.vue'),
+        },
+        {
+          path: 'config',
+          name: 'config',
+          component: () => import('../views/ConfigView.vue'),
+        },
       ],
     },
   ],

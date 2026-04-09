@@ -18,6 +18,15 @@
         <el-menu-item v-if="showMenu('audit')" index="/audit">
           <span>审计日志</span>
         </el-menu-item>
+        <el-menu-item v-if="showMenu('roles')" index="/roles">
+          <span>角色管理</span>
+        </el-menu-item>
+        <el-menu-item v-if="showMenu('apps')" index="/apps">
+          <span>应用管理</span>
+        </el-menu-item>
+        <el-menu-item v-if="showMenu('config')" index="/config">
+          <span>系统配置</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>
@@ -47,6 +56,9 @@ const menuVisibility: Record<string, string[]> = {
   campus: ['super_admin', 'org_admin', 'campus_admin'],
   analytics: ['super_admin', 'org_admin', 'campus_admin'],
   audit: ['super_admin', 'org_admin'],
+  roles: ['super_admin'],
+  apps: ['super_admin'],
+  config: ['super_admin'],
 }
 
 function showMenu(resource: string): boolean {
