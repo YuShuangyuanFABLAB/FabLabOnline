@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>事后分析 - Anthropic AI方法论</title>
+    <style>
+        :root {
+            --bg-color: #0f0f0f;
+            --text-color: #e0e0e0;
+            --accent-color: #d97706;
+            --accent-light: #f59e0b;
+            --card-bg: #1a1a1a;
+            --border-color: #333;
+            --code-bg: #252525;
+            --link-color: #60a5fa;
+            --quote-bg: #1e293b;
+            --case-bg: #1a2a1a;
+            --case-border: #2d5a2d;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f8fafc;
+                --text-color: #1e293b;
+                --card-bg: #ffffff;
+                --border-color: #e2e8f0;
+                --code-bg: #f1f5f9;
+                --link-color: #2563eb;
+                --quote-bg: #fffbeb;
+                --case-bg: #f0fdf4;
+                --case-border: #86efac;
+            }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            font-size: 16px;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 2.2rem; margin-bottom: 20px; color: var(--accent-light); border-bottom: 2px solid var(--accent-color); padding-bottom: 15px; }
+        h2 { font-size: 1.6rem; margin: 40px 0 20px; color: var(--accent-light); }
+        h3 { font-size: 1.3rem; margin: 25px 0 15px; }
+        h4 { font-size: 1.1rem; margin: 20px 0 10px; }
+        p { margin-bottom: 15px; }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        blockquote { background: var(--quote-bg); border-left: 4px solid var(--accent-color); padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        ul, ol { margin: 15px 0; padding-left: 25px; }
+        li { margin-bottom: 8px; }
+        code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Consolas, monospace; font-size: 0.9em; }
+        pre { background: var(--code-bg); padding: 20px; border-radius: 8px; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border-color); }
+        pre code { padding: 0; background: none; font-size: 0.85rem; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px 15px; text-align: left; border: 1px solid var(--border-color); }
+        th { background: var(--quote-bg); font-weight: 600; }
+        tr:nth-child(even) { background: var(--card-bg); }
+        .case-study { background: var(--case-bg); border: 2px solid var(--case-border); border-radius: 12px; padding: 25px; margin: 30px 0; }
+        .case-study h3 { color: #4ade80; margin-top: 0; }
+        .case-tag { display: inline-block; background: var(--accent-color); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 15px; }
+        .highlight { background: linear-gradient(135deg, var(--quote-bg), var(--card-bg)); border: 1px solid var(--accent-color); border-radius: 12px; padding: 20px; margin: 25px 0; }
+        .highlight strong { color: var(--accent-light); }
+        .nav-back { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; }
+        hr { border: none; border-top: 1px solid var(--border-color); margin: 40px 0; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="nav-back">← 返回目录</a>
+
+    <h1>事后分析</h1>
+
+    <div class="highlight">
+        <strong>来源：</strong> <a href="https://www.anthropic.com/engineering/postmortem" target="_blank">https://www.anthropic.com/engineering/postmortem</a><br>
+        <strong>发布日期：</strong> 2025-09-17
+    </div>
+
+    <h2>一、事后分析概述</h2>
+
+    <h3>1.1 什么是事后分析</h3>
+    <p>事后分析（Postmortem）是在事故或问题发生后进行的系统性回顾，目的是理解根本原因、防止再次发生，而不是追责。</p>
+
+    <h3>1.2 核心原则</h3>
+    <table>
+        <tr><th>原则</th><th>说明</th></tr>
+        <tr><td>无责文化</td><td>关注问题而非个人</td></tr>
+        <tr><td>透明公开</td><td>分享经验和教训</td></tr>
+        <tr><td>行动导向</td><td>产生具体改进措施</td></tr>
+        <tr><td>可追溯</td><td>记录完整的时间线</td></tr>
+    </table>
+
+    <h2>二、分析方法</h2>
+
+    <h3>2.1 5 Whys分析</h3>
+    <p>通过连续追问"为什么"找到根本原因。</p>
+
+    <h3>2.2 时间线分析</h3>
+    <p>重建事故发生的时间线，找出关键节点。</p>
+
+    <h2>三、实战案例</h2>
+
+    <div class="case-study">
+        <span class="case-tag">案例 1</span>
+        <h3>API响应超时事故分析</h3>
+        <h4>5 Whys分析</h4>
+        <ol>
+            <li>为什么API响应变慢？→ 数据库查询排队</li>
+            <li>为什么排队？→ 连接池耗尽</li>
+            <li>为什么耗尽？→ 配置不足</li>
+            <li>为什么配置不足？→ 未随业务调整</li>
+            <li>为什么没调整？→ 缺少监控</li>
+        </ol>
+
+        <h4>改进措施</h4>
+        <ul>
+            <li>增加连接池配置</li>
+            <li>添加监控告警</li>
+            <li>实施自动扩容</li>
+        </ul>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 2</span>
+        <h3>内存泄漏事故分析</h3>
+        <h4>问题</h4>
+        <p>服务内存持续增长最终OOM</p>
+
+        <h4>根因</h4>
+        <p>UserSession对象未正确清理</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 3</span>
+        <h3>数据不一致事故分析</h3>
+        <h4>问题</h4>
+        <p>数据库与缓存数据不一致</p>
+
+        <h4>根因</h4>
+        <p>缓存更新失败但事务已提交</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 4</span>
+        <h3>安全漏洞事故分析</h3>
+        <h4>问题</h4>
+        <p>发现SQL注入漏洞</p>
+
+        <h4>改进</h4>
+        <ul>
+            <li>修复漏洞</li>
+            <li>加强安全审查</li>
+            <li>添加自动化测试</li>
+        </ul>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 5</span>
+        <h3>部署失败事故分析</h3>
+        <h4>问题</h4>
+        <p>生产环境部署失败导致服务中断</p>
+
+        <h4>改进</h4>
+        <ul>
+            <li>添加预部署检查</li>
+            <li>实施金丝雀发布</li>
+            <li>增加自动回滚</li>
+        </ul>
+    </div>
+
+    <h2>四、最佳实践</h2>
+
+    <h3>4.1 事后分析原则</h3>
+    <table>
+        <tr><th>原则</th><th>说明</th></tr>
+        <tr><td>及时性</td><td>事故后72小时内完成</td></tr>
+        <tr><td>无责性</td><td>关注系统问题而非个人</td></tr>
+        <tr><td>具体化</td><td>行动项明确可执行</td></tr>
+        <tr><td>可度量</td><td>改进效果可衡量</td></tr>
+    </table>
+
+    <h2>五、总结</h2>
+    <div class="highlight">
+        <strong>事后分析的核心价值：</strong>
+        <ol>
+            <li>学习改进：从错误中学习</li>
+            <li>系统优化：发现系统性问题</li>
+            <li>文化建设：建立无责文化</li>
+            <li>知识积累：沉淀组织经验</li>
+        </ol>
+    </div>
+
+    <hr>
+    <p><a href="../index.html">← 返回目录</a></p>
+</body>
+</html>

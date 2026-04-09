@@ -1,0 +1,28 @@
+{
+  "project_name": "课程反馈PPT自动生成器",
+  "project_type": "ppt_generator",
+  "description": "Windows桌面GUI程序，自动生成学生课程反馈PPT",
+  "tech_stack": ["Python", "PyQt5", "python-pptx", "Pillow"],
+
+  "structure": {
+    "main_entry": "main.py",
+    "source_dirs": ["src/", "config/", "resources/", "output/"],
+    "template_files": ["templates/课程反馈.pptx"],
+    "config_files": ["config/settings.json", "config/colors.json"]
+  },
+
+  "commands": {
+    "run": "python main.py",
+    "test": "python -m pytest tests/ -v",
+    "install": "pip install -r requirements.txt"
+  },
+
+  "target_environment": {
+    "type": "office",
+    "applications": ["PowerPoint"],
+    "verification_api": "win32com.client.Dispatch('PowerPoint.Application')"
+  },
+
+  "feature_list_path": ".agent/feature_list.json",
+  "progress_path": ".agent/agent-progress.txt"
+}

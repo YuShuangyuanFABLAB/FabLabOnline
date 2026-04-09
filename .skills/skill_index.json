@@ -1,0 +1,131 @@
+{
+  "version": "1.5",
+  "updated": "2026-02-20",
+  "description": "Skills索引 - 问题诊断与解决方案",
+
+  "core_reference": {
+    "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+    "local_file": ".skills/anthropic_agent_guide.md",
+    "description": "Anthropic官方方法论 - 两阶段Agent系统、增量开发、功能列表管理"
+  },
+
+  "categories": {
+    "core": {
+      "name": "核心方法论",
+      "skills": ["anthropic_agent_guide", "testing_methodology", "algorithm_debugging", "code_change_tracking"]
+    },
+    "ppt": {
+      "name": "PowerPoint相关",
+      "skills": ["ppt_text_processing", "ppt_layout_calculation", "office_render_calculation"]
+    },
+    "management": {
+      "name": "项目管理",
+      "skills": ["skill_sync_rule", "test_file_cleanup"]
+    }
+  },
+
+  "skills": {
+    "anthropic_agent_guide": {
+      "file": "anthropic_agent_guide.md",
+      "keywords": ["Agent", "方法论", "Anthropic", "两阶段", "增量开发", "功能列表", "跨会话"],
+      "problem": "如何让AI Agent跨多个上下文窗口持续开发项目",
+      "solution": "两阶段Agent系统+JSON功能列表+增量开发+清晰记录（Anthropic原文）"
+    },
+    "testing_methodology": {
+      "file": "testing_methodology.md",
+      "keywords": ["测试", "验证", "目标环境", "COM", "代码测试", "bug诊断", "测试策略", "三层验证", "用户确认"],
+      "problem": "代码测试通过但实际效果不正确，如何设计正确的测试方法",
+      "solution": "三层验证体系，用户视角验证是唯一可靠的最终确认"
+    },
+    "algorithm_debugging": {
+      "file": "algorithm_debugging.md",
+      "keywords": ["算法", "调试", "反复出错", "位置映射", "中间结果", "重写", "修补", "问题定位", "边界测试", "死代码"],
+      "problem": "同一个问题反复出现，修改多次仍未解决",
+      "solution": "问题定位四步法+中间结果打印+决定重写还是修补+清理死代码+代码维护防错"
+    },
+    "code_change_tracking": {
+      "file": "code_change_tracking.md",
+      "keywords": ["改动追溯", "变更记录", "问题反复", "修改记录", "Git历史", "代码变更", "诊断路径"],
+      "problem": "问题反复出现，每次都无法根据之前的经验快速修正",
+      "solution": "建立改动追溯规范+记录修改原因和验证结果+更新相关skill+检查影响范围"
+    },
+    "ppt_text_processing": {
+      "file": "ppt_text_processing.md",
+      "keywords": ["颜色", "color", "文本处理", "颜色标记", "位置映射", "HTML提取", "出现次数", "复选框", "checkbox", "Wingdings", "sym", "solidFill"],
+      "problem": "PPT文本颜色标记位置不正确，从富文本提取着色文本并应用到PPT",
+      "solution": "按段落重建纯文本+计算出现次数+find_nth_occurrence定位+XML元素顺序检查"
+    },
+    "ppt_layout_calculation": {
+      "file": "ppt_layout_calculation.md",
+      "keywords": ["布局计算", "边距", "margin", "文本高度", "形状高度", "行高", "COM API", "BoundHeight", "单位转换"],
+      "problem": "PPT中文本边距随行数变化，公式估算不准确",
+      "solution": "使用COM API获取实际文本高度+形状高度=文本高度+2*边距+更新组合边界框"
+    },
+    "office_render_calculation": {
+      "file": "office_render_calculation.md",
+      "keywords": ["渲染计算", "行数", "换行", "高度计算", "COM API", "单位转换", "EMU", "points", "组合形状", "参数反推"],
+      "problem": "需要获取Office文档实际渲染信息（行数、尺寸）或进行精确布局计算",
+      "solution": "使用COM API获取渲染信息+正确计算公式+参数反推"
+    },
+    "skill_sync_rule": {
+      "file": "skill_sync_rule.md",
+      "keywords": ["skill同步", "全局skill", "同步规则", "skill管理", "git push", "网络问题"],
+      "problem": "如何确保skill在任何项目中都可访问",
+      "solution": "同步到全局目录(~/.skills/)+Git云端备份+重试策略"
+    },
+    "test_file_cleanup": {
+      "file": "test_file_cleanup.md",
+      "keywords": ["清理", "临时文件", "测试文件", "cleanup", "删除"],
+      "problem": "测试完成后项目中有大量临时测试文件",
+      "solution": "默认保留最近3轮文件，仅用户明确要求时完全删除"
+    }
+  },
+
+  "quick_reference": {
+    "Agent方法论": "anthropic_agent_guide",
+    "Anthropic": "anthropic_agent_guide",
+    "增量开发": "anthropic_agent_guide",
+    "功能列表": "anthropic_agent_guide",
+    "测试方法": "testing_methodology",
+    "测试策略": "testing_methodology",
+    "bug诊断": "testing_methodology",
+    "目标环境验证": "testing_methodology",
+    "三层验证": "testing_methodology",
+    "测试通过但不对": "testing_methodology",
+    "反复出错": "algorithm_debugging",
+    "问题反复出现": "algorithm_debugging",
+    "算法调试": "algorithm_debugging",
+    "位置映射": "algorithm_debugging",
+    "中间结果": "algorithm_debugging",
+    "重写算法": "algorithm_debugging",
+    "改动追溯": "code_change_tracking",
+    "变更记录": "code_change_tracking",
+    "修改历史": "code_change_tracking",
+    "问题诊断": "code_change_tracking",
+    "颜色问题": "ppt_text_processing",
+    "文本颜色": "ppt_text_processing",
+    "颜色标记": "ppt_text_processing",
+    "出现次数": "ppt_text_processing",
+    "复选框": "ppt_text_processing",
+    "HTML提取": "ppt_text_processing",
+    "富文本": "ppt_text_processing",
+    "边距问题": "ppt_layout_calculation",
+    "布局计算": "ppt_layout_calculation",
+    "文本高度": "ppt_layout_calculation",
+    "形状高度": "ppt_layout_calculation",
+    "行高计算": "ppt_layout_calculation",
+    "边距计算": "ppt_layout_calculation",
+    "行数计算": "office_render_calculation",
+    "高度计算": "office_render_calculation",
+    "渲染信息": "office_render_calculation",
+    "单位转换": "office_render_calculation",
+    "EMU": "office_render_calculation",
+    "组合形状": "office_render_calculation",
+    "自动调整高度": "office_render_calculation",
+    "skill同步": "skill_sync_rule",
+    "全局skill": "skill_sync_rule",
+    "git同步": "skill_sync_rule",
+    "清理临时文件": "test_file_cleanup",
+    "删除测试文件": "test_file_cleanup"
+  }
+}

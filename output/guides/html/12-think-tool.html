@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>思考工具 - Anthropic AI方法论</title>
+    <style>
+        :root {
+            --bg-color: #0f0f0f;
+            --text-color: #e0e0e0;
+            --accent-color: #d97706;
+            --accent-light: #f59e0b;
+            --card-bg: #1a1a1a;
+            --border-color: #333;
+            --code-bg: #252525;
+            --link-color: #60a5fa;
+            --quote-bg: #1e293b;
+            --case-bg: #1a2a1a;
+            --case-border: #2d5a2d;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f8fafc;
+                --text-color: #1e293b;
+                --card-bg: #ffffff;
+                --border-color: #e2e8f0;
+                --code-bg: #f1f5f9;
+                --link-color: #2563eb;
+                --quote-bg: #fffbeb;
+                --case-bg: #f0fdf4;
+                --case-border: #86efac;
+            }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            font-size: 16px;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 2.2rem; margin-bottom: 20px; color: var(--accent-light); border-bottom: 2px solid var(--accent-color); padding-bottom: 15px; }
+        h2 { font-size: 1.6rem; margin: 40px 0 20px; color: var(--accent-light); }
+        h3 { font-size: 1.3rem; margin: 25px 0 15px; }
+        h4 { font-size: 1.1rem; margin: 20px 0 10px; }
+        p { margin-bottom: 15px; }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        blockquote { background: var(--quote-bg); border-left: 4px solid var(--accent-color); padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        ul, ol { margin: 15px 0; padding-left: 25px; }
+        li { margin-bottom: 8px; }
+        code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Consolas, monospace; font-size: 0.9em; }
+        pre { background: var(--code-bg); padding: 20px; border-radius: 8px; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border-color); }
+        pre code { padding: 0; background: none; font-size: 0.85rem; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px 15px; text-align: left; border: 1px solid var(--border-color); }
+        th { background: var(--quote-bg); font-weight: 600; }
+        tr:nth-child(even) { background: var(--card-bg); }
+        .case-study { background: var(--case-bg); border: 2px solid var(--case-border); border-radius: 12px; padding: 25px; margin: 30px 0; }
+        .case-study h3 { color: #4ade80; margin-top: 0; }
+        .case-tag { display: inline-block; background: var(--accent-color); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 15px; }
+        .highlight { background: linear-gradient(135deg, var(--quote-bg), var(--card-bg)); border: 1px solid var(--accent-color); border-radius: 12px; padding: 20px; margin: 25px 0; }
+        .highlight strong { color: var(--accent-light); }
+        .nav-back { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; }
+        hr { border: none; border-top: 1px solid var(--border-color); margin: 40px 0; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="nav-back">← 返回目录</a>
+
+    <h1>思考工具</h1>
+
+    <div class="highlight">
+        <strong>来源：</strong> <a href="https://www.anthropic.com/engineering/think-tool" target="_blank">https://www.anthropic.com/engineering/think-tool</a><br>
+        <strong>发布日期：</strong> 2025-03-20
+    </div>
+
+    <h2>一、思考工具概述</h2>
+
+    <h3>1.1 什么是思考工具</h3>
+    <p>思考工具是一种让模型在进行响应前进行内部"思考"的机制。它允许模型在生成最终答案前，先进行推理、规划和自我检查。</p>
+
+    <h3>1.2 工作原理</h3>
+    <pre><code>用户输入 → [思考阶段] → [输出阶段] → 最终答案
+
+思考阶段包括：
+├── 理解问题
+├── 收集信息
+├── 规划回答
+├── 验证逻辑
+└── 检查约束</code></pre>
+
+    <h2>二、思考模式</h2>
+
+    <h3>2.1 链式思考（Chain of Thought）</h3>
+    <p>逐步推理，每一步都明确展示。</p>
+
+    <h3>2.2 自我反思（Self-Reflection）</h3>
+    <p>生成答案后自我检查和修正。</p>
+
+    <h3>2.3 分解思考（Decomposition）</h3>
+    <p>将复杂问题分解为子问题。</p>
+
+    <h2>三、实战案例</h2>
+
+    <div class="case-study">
+        <span class="case-tag">案例 1</span>
+        <h3>实现基础思考工具</h3>
+        <h4>思考阶段</h4>
+        <ol>
+            <li>理解问题（Understand）</li>
+            <li>分析（Analyze）</li>
+            <li>规划（Plan）</li>
+            <li>执行（Execute）</li>
+            <li>验证（Verify）</li>
+        </ol>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 2</span>
+        <h3>带自我修正的思考</h3>
+        <h4>流程</h4>
+        <p>初始思考 → 批评 → 修正 → 再次批评 → 直到满意</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 3</span>
+        <h3>结构化思考框架</h3>
+        <h4>框架</h4>
+        <ul>
+            <li><strong>SOAR</strong>: Situation, Obstacle, Action, Result</li>
+            <li><strong>SMART</strong>: Specific, Measurable, Achievable, Relevant, Time-bound</li>
+            <li><strong>第一性原理</strong>: 分解 → 识别原理 → 重组</li>
+        </ul>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 4</span>
+        <h3>多步骤问题分解</h3>
+        <h4>方法</h4>
+        <p>将复杂问题分解为子问题，自底向上解决。</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 5</span>
+        <h3>思考工具与工具调用结合</h3>
+        <h4>流程</h4>
+        <p>思考 → 决定行动 → 执行工具 → 继续思考 → 最终答案</p>
+    </div>
+
+    <h2>四、最佳实践</h2>
+
+    <h3>4.1 思考工具设计原则</h3>
+    <table>
+        <tr><th>原则</th><th>说明</th></tr>
+        <tr><td>结构化</td><td>使用明确的思考框架</td></tr>
+        <tr><td>可追溯</td><td>记录思考过程</td></tr>
+        <tr><td>可中断</td><td>允许人工干预</td></tr>
+        <tr><td>可验证</td><td>支持结果验证</td></tr>
+    </table>
+
+    <h2>五、总结</h2>
+    <div class="highlight">
+        <strong>思考工具的核心价值：</strong>
+        <ol>
+            <li>提升推理质量：系统性的思考过程</li>
+            <li>增加透明度：可见的推理过程</li>
+            <li>自我修正：发现和修正错误</li>
+            <li>复杂问题求解：分解和逐步解决</li>
+        </ol>
+    </div>
+
+    <hr>
+    <p><a href="../index.html">← 返回目录</a></p>
+</body>
+</html>

@@ -1,0 +1,726 @@
+{
+  "version": "1.0",
+  "layout_selection": {
+    "include_course_info": true,
+    "include_model_display": true,
+    "model_display_count": 1,
+    "include_double_image": false,
+    "include_program_display": false,
+    "include_vehicle_display": false,
+    "include_work_display": true
+  },
+  "common_data": {
+    "students": [
+      "测试学生B",
+      "测试学生A",
+      "李四",
+      "张三"
+    ],
+    "teachers": [
+      "测试教师X",
+      "王老师"
+    ],
+    "courses": [
+      "乐高机械臂",
+      "乐高课程"
+    ],
+    "default_class_hours": 2
+  },
+  "paths": {
+    "last_save_path": "output",
+    "last_excel_path": "",
+    "template_path": "templates/课程反馈.pptx"
+  },
+  "window": {
+    "width": 1200,
+    "height": 800,
+    "x": 100,
+    "y": 100
+  },
+  "window_geometry": "01d9d0cb00030000000002760000006a00000727000003b0000002770000009000000726000003af00000000000000000780000002770000009000000726000003af",
+  "window_state": "000000ff00000000fd00000000000004b0000002d200000004000000040000000800000008fc00000001000000020000000100000016006d00610069006e0054006f006f006c0042006100720100000000ffffffff0000000000000000",
+  "splitter_state": "000000ff0000000100000001000002bc01ffffffff010000000100",
+  "default_teacher": "",
+  "default_class_hours": 2,
+  "recent_students": [
+    "朱王佳懿",
+    "赵宏泽",
+    "于馨媛",
+    "潘丁怡嘉",
+    "林景泽",
+    "饭饭",
+    "一一",
+    "亮亮",
+    "赵如一",
+    "孙子清",
+    "杰宝",
+    "长宽",
+    "多次",
+    "vf",
+    "是车上",
+    "旅居",
+    "vffv",
+    "错了就错了",
+    "vkd2",
+    "vkd"
+  ],
+  "recent_teachers": [
+    "于双源",
+    "陈一涵",
+    "测测",
+    "生成",
+    "阿文",
+    "上次",
+    "猜测2",
+    "猜测",
+    "事情",
+    "色色是",
+    "是",
+    "是车上",
+    "收藏收藏",
+    "单独",
+    "村上春树",
+    "的CDC",
+    "卧槽",
+    "是雷锋精神疗法",
+    "色色",
+    "拆解了"
+  ],
+  "recent_courses": [],
+  "layout_config": {
+    "include_course_info": true,
+    "include_model_display": true,
+    "include_work_display": true,
+    "include_program_display": true,
+    "include_vehicle_display": false
+  },
+  "template_path": "templates/课程反馈.pptx",
+  "output_path": "output",
+  "auto_save": true,
+  "show_preview": true,
+  "course_series": [
+    {
+      "name": "机械臂设计",
+      "level": 1
+    },
+    {
+      "name": "玩具大改造",
+      "level": 1
+    },
+    {
+      "name": "军卡大改造",
+      "level": 1
+    },
+    {
+      "name": "履带车改造",
+      "level": 1
+    }
+  ],
+  "current_series_index": 0,
+  "classes": [
+    {
+      "id": "cls_55818768",
+      "name": "星期三 18:30",
+      "teacher": "于双源",
+      "series_index": 0,
+      "layout_config": {
+        "include_course_info": true,
+        "include_model_display": true,
+        "include_work_display": true,
+        "include_program_display": true,
+        "include_vehicle_display": true
+      },
+      "next_lesson_number": 15
+    },
+    {
+      "id": "cls_f4442cb0",
+      "name": "星期六 18:40",
+      "teacher": "于双源",
+      "series_index": 3,
+      "layout_config": {
+        "include_course_info": true,
+        "include_model_display": false,
+        "include_work_display": true,
+        "include_program_display": true,
+        "include_vehicle_display": false
+      },
+      "next_lesson_number": 19
+    },
+    {
+      "id": "cls_b16c5c08",
+      "name": "星期六 18:30",
+      "teacher": "陈一涵",
+      "series_index": 2,
+      "layout_config": {
+        "include_course_info": true,
+        "include_model_display": false,
+        "include_work_display": true,
+        "include_program_display": true,
+        "include_vehicle_display": true
+      }
+    },
+    {
+      "id": "cls_82915c49",
+      "name": "星期二 18:30",
+      "teacher": "陈一涵",
+      "series_index": 2,
+      "layout_config": {
+        "include_course_info": true,
+        "include_model_display": false,
+        "include_work_display": true,
+        "include_program_display": true,
+        "include_vehicle_display": true
+      }
+    }
+  ],
+  "current_class_id": "cls_55818768",
+  "students_by_class": {
+    "cls_55818768": [
+      {
+        "name": "朱王佳懿",
+        "nickname": "七七"
+      },
+      {
+        "name": "赵如一",
+        "nickname": "蛋蛋"
+      },
+      {
+        "name": "潘丁怡嘉",
+        "nickname": "果果"
+      },
+      {
+        "name": "于馨媛",
+        "nickname": "盈盈"
+      },
+      {
+        "name": "赵宏泽",
+        "nickname": "泽泽"
+      }
+    ],
+    "cls_f4442cb0": [
+      {
+        "name": "亮亮",
+        "nickname": "亮亮"
+      },
+      {
+        "name": "一一",
+        "nickname": "一一"
+      },
+      {
+        "name": "孙子清",
+        "nickname": "清清"
+      },
+      {
+        "name": "饭饭",
+        "nickname": "饭饭"
+      },
+      {
+        "name": "办办",
+        "nickname": "办办"
+      },
+      {
+        "name": "八喜",
+        "nickname": "八喜"
+      },
+      {
+        "name": "林景泽",
+        "nickname": "景泽"
+      }
+    ],
+    "cls_b16c5c08": [
+      {
+        "name": "满满",
+        "nickname": "满满"
+      },
+      {
+        "name": "林景赫",
+        "nickname": "景赫"
+      }
+    ],
+    "cls_82915c49": [
+      {
+        "name": "杰宝",
+        "nickname": "杰宝"
+      },
+      {
+        "name": "解本昕",
+        "nickname": "本昕"
+      }
+    ]
+  },
+  "student_last_evaluation": {
+    "cls_55818768": {
+      "朱王佳懿": {
+        "logic_thinking": "未体现",
+        "content_understanding": "优",
+        "task_completion": "未体现",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "良",
+        "imagination_creativity": "优",
+        "frustration_handling": "未体现",
+        "learning_method": "未体现",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "良",
+        "last_homework_status": "优",
+        "additional_comments": "创建类继承了打开历史可分解落实，七七赛车理财经理但是看见，查理斯额检查利空打击七七，测试理论七七会复活复活，朱王佳懿加油！基础类检查端口七七啊啊朱王佳懿。测出的七七就创建555"
+      },
+      "赵如一": {
+        "logic_thinking": "未体现",
+        "content_understanding": "中",
+        "task_completion": "中",
+        "listening_habit": "良",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "优",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "未体现",
+        "hands_on_ability": "优",
+        "focus_efficiency": "良",
+        "overall_evaluation": "优",
+        "last_homework_status": "优",
+        "additional_comments": "创建类继承了打开历史可分解落实，蛋蛋赛车理财经理但是看见，查理斯额检查利空打击蛋蛋，测试理论蛋蛋会复活复活，赵如一加油！基础类检查端口蛋蛋啊啊赵如一。测出的蛋蛋就创建555"
+      },
+      "潘丁怡嘉": {
+        "logic_thinking": "未体现",
+        "content_understanding": "未体现",
+        "task_completion": "良",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "良",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "未体现",
+        "hands_on_ability": "良",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "良",
+        "last_homework_status": "良",
+        "additional_comments": "创建类继承了打开历史可分解落实，果果赛车理财经理但是看见，查理斯额检查利空打击果果，测试理论果果会复活复活，潘丁怡嘉加油！基础类检查端口果果啊啊潘丁怡嘉。测出的果果就创建555"
+      },
+      "于馨媛": {
+        "logic_thinking": "中",
+        "content_understanding": "未体现",
+        "task_completion": "未体现",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "中",
+        "knowledge_proficiency": "未体现",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "中",
+        "learning_method": "未体现",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "仍需努力",
+        "last_homework_status": "中",
+        "additional_comments": "创建类继承了打开历史可分解落实，盈盈赛车理财经理但是看见，查理斯额检查利空打击盈盈，测试理论盈盈会复活复活，于馨媛加油！基础类检查端口盈盈啊啊于馨媛。测出的盈盈就创建555"
+      },
+      "赵宏泽": {
+        "logic_thinking": "差",
+        "content_understanding": "未体现",
+        "task_completion": "未体现",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "差",
+        "knowledge_proficiency": "未体现",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "差",
+        "learning_method": "未体现",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "需要改进",
+        "last_homework_status": "差",
+        "additional_comments": "创建类继承了打开历史可分解落实，泽泽赛车理财经理但是看见，查理斯额检查利空打击泽泽，测试理论泽泽会复活复活，赵宏泽加油！基础类检查端口泽泽啊啊赵宏泽。测出的泽泽就创建555"
+      },
+      "林景泽": {
+        "logic_thinking": "未体现",
+        "content_understanding": "良",
+        "task_completion": "优",
+        "listening_habit": "良",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "未体现",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "良",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "良",
+        "overall_evaluation": "良",
+        "last_homework_status": "良",
+        "additional_comments": "林景泽本次课表现良好。林景泽课上专注认真。林景泽很好。超级超级出色，两个里昂林景泽。超级超级重叠"
+      },
+      "亮亮": {
+        "logic_thinking": "优",
+        "content_understanding": "中",
+        "task_completion": "优",
+        "listening_habit": "良",
+        "problem_solving": "优",
+        "independent_analysis": "优",
+        "knowledge_proficiency": "优",
+        "imagination_creativity": "优",
+        "frustration_handling": "优",
+        "learning_method": "优",
+        "hands_on_ability": "优",
+        "focus_efficiency": "优",
+        "overall_evaluation": "优",
+        "last_homework_status": "无",
+        "additional_comments": "亮亮本次课表现良好。亮亮课上专注认真。亮亮很好。超级超级出色，两个里昂亮亮。超级超级村上春树。此事就此。hukh"
+      },
+      "饭饭": {
+        "logic_thinking": "未体现",
+        "content_understanding": "未体现",
+        "task_completion": "未体现",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "未体现",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "未体现",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "良",
+        "last_homework_status": "无",
+        "additional_comments": "饭饭本次课表现良好。饭饭课上专注认真。饭饭很好。超级超级"
+      },
+      "孙子清": {
+        "logic_thinking": "未体现",
+        "content_understanding": "优",
+        "task_completion": "优",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "未体现",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "未体现",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "良",
+        "last_homework_status": "无",
+        "additional_comments": "孙子清本次课表现良好。孙子清课上专注认真。孙子清很好。超级超级出色，两个里昂孙子清。超级超级"
+      }
+    },
+    "cls_f4442cb0": {
+      "赵如一": {
+        "logic_thinking": "未体现",
+        "content_understanding": "优",
+        "task_completion": "未体现",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "未体现",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "良",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "良",
+        "last_homework_status": "无",
+        "additional_comments": "创建类继承了打开历史可分解落实，蛋蛋赛车理财经理但是看见，查理斯额检查利空打击蛋蛋，测试理论蛋蛋会复活复活，赵如一加油！基础类检查端口蛋蛋啊啊赵如一。"
+      },
+      "一一": {
+        "logic_thinking": "未体现",
+        "content_understanding": "良",
+        "task_completion": "良",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "良",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "未体现",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "良",
+        "last_homework_status": "无",
+        "additional_comments": "一一本次课老师检查老师检测i就成了实地考察就，来讲Elsie就了，一一处理数据处理角色库存降低库存，两次额剧烈冲击的。一一还可曾经是列车接近从。一一哈哈哈一一可以"
+      },
+      "亮亮": {
+        "logic_thinking": "优",
+        "content_understanding": "中",
+        "task_completion": "优",
+        "listening_habit": "良",
+        "problem_solving": "优",
+        "independent_analysis": "优",
+        "knowledge_proficiency": "优",
+        "imagination_creativity": "优",
+        "frustration_handling": "优",
+        "learning_method": "优",
+        "hands_on_ability": "优",
+        "focus_efficiency": "优",
+        "overall_evaluation": "优",
+        "last_homework_status": "无",
+        "additional_comments": "亮亮本次课老师检查老师检测i就成了实地考察就，来讲Elsie就了，亮亮处理数据处理角色库存降低库存，两次额剧烈冲击的。亮亮还可曾经是列车接近从。亮亮哈哈哈亮亮可以"
+      },
+      "孙子清": {
+        "logic_thinking": "未体现",
+        "content_understanding": "优",
+        "task_completion": "未体现",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "优",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "优",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "良",
+        "last_homework_status": "无",
+        "additional_comments": "孙子清本次课老师检查老师检测i就成了实地考察就，来讲Elsie就了，孙子清处理数据处理角色库存降低库存，两次额剧烈冲击的。孙子清还可曾经是列车接近从。孙子清哈哈哈孙子清可以"
+      },
+      "饭饭": {
+        "logic_thinking": "未体现",
+        "content_understanding": "良",
+        "task_completion": "未体现",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "良",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "良",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "良",
+        "last_homework_status": "无",
+        "additional_comments": "饭饭本次课老师检查老师检测i就成了实地考察就，来讲Elsie就了，饭饭处理数据处理角色库存降低库存，两次额剧烈冲击的。饭饭还可曾经是列车接近从。饭饭哈哈哈饭饭可以"
+      },
+      "办办": {
+        "logic_thinking": "未体现",
+        "content_understanding": "未体现",
+        "task_completion": "未体现",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "未体现",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "未体现",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "良",
+        "last_homework_status": "无",
+        "additional_comments": "办办本次课老师检查老师检测i就成了实地考察就，来讲Elsie就了，办办处理数据处理角色库存降低库存，两次额剧烈冲击的。办办还可曾经是列车接近从。办办哈哈哈办办可以"
+      },
+      "八喜": {
+        "logic_thinking": "未体现",
+        "content_understanding": "未体现",
+        "task_completion": "未体现",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "未体现",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "未体现",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "良",
+        "last_homework_status": "无",
+        "additional_comments": "八喜本次课老师检查老师检测i就成了实地考察就，来讲Elsie就了，八喜处理数据处理角色库存降低库存，两次额剧烈冲击的。八喜还可曾经是列车接近从。八喜哈哈哈"
+      },
+      "朱王佳懿": {
+        "logic_thinking": "未体现",
+        "content_understanding": "优",
+        "task_completion": "未体现",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "良",
+        "imagination_creativity": "优",
+        "frustration_handling": "未体现",
+        "learning_method": "未体现",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "良",
+        "last_homework_status": "优",
+        "additional_comments": "创建类继承了打开历史可分解落实，七七赛车理财经理但是看见，查理斯额检查利空打击七七，测试理论七七会复活复活，朱王佳懿加油！基础类检查端口七七啊啊朱王佳懿。测出的七七就创建"
+      },
+      "赵宏泽": {
+        "logic_thinking": "未体现",
+        "content_understanding": "未体现",
+        "task_completion": "未体现",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "优",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "未体现",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "良",
+        "last_homework_status": "无",
+        "additional_comments": "创建类继承了打开历史可分解落实，泽泽赛车理财经理但是看见，查理斯额检查利空打击泽泽，测试理论泽泽会复活复活，赵宏泽加油！基础类检查端口泽泽啊啊赵宏泽。测出的泽泽就创建"
+      },
+      "满满": {
+        "logic_thinking": "优",
+        "content_understanding": "优",
+        "task_completion": "优",
+        "listening_habit": "优",
+        "problem_solving": "优",
+        "independent_analysis": "优",
+        "knowledge_proficiency": "优",
+        "imagination_creativity": "优",
+        "frustration_handling": "优",
+        "learning_method": "优",
+        "hands_on_ability": "优",
+        "focus_efficiency": "优",
+        "overall_evaluation": "优",
+        "last_homework_status": "无",
+        "additional_comments": ""
+      },
+      "林景泽": {
+        "logic_thinking": "未体现",
+        "content_understanding": "良",
+        "task_completion": "优",
+        "listening_habit": "良",
+        "problem_solving": "未体现",
+        "independent_analysis": "未体现",
+        "knowledge_proficiency": "未体现",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "未体现",
+        "learning_method": "未体现",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "优",
+        "overall_evaluation": "良",
+        "last_homework_status": "无",
+        "additional_comments": "林景泽本次课老师检查老师检测i就成了实地考察就，来讲Elsie就了，林景泽处理数据处理角色库存降低库存，两次额剧烈冲击的。林景泽还可曾经是列车接近从。林景泽哈哈哈"
+      },
+      "于馨媛": {
+        "logic_thinking": "中",
+        "content_understanding": "未体现",
+        "task_completion": "未体现",
+        "listening_habit": "未体现",
+        "problem_solving": "未体现",
+        "independent_analysis": "中",
+        "knowledge_proficiency": "未体现",
+        "imagination_creativity": "未体现",
+        "frustration_handling": "中",
+        "learning_method": "未体现",
+        "hands_on_ability": "未体现",
+        "focus_efficiency": "未体现",
+        "overall_evaluation": "仍需努力",
+        "last_homework_status": "中",
+        "additional_comments": "创建类继承了打开历史可分解落实，盈盈赛车理财经理但是看见，查理斯额检查利空打击盈盈，测试理论盈盈会复活复活，于馨媛加油！基础类检查端口盈盈啊啊于馨媛。测出的盈盈就创建"
+      }
+    },
+    "cls_b16c5c08": {
+      "满满": {
+        "logic_thinking": "优",
+        "content_understanding": "优",
+        "task_completion": "优",
+        "listening_habit": "优",
+        "problem_solving": "优",
+        "independent_analysis": "优",
+        "knowledge_proficiency": "优",
+        "imagination_creativity": "优",
+        "frustration_handling": "优",
+        "learning_method": "优",
+        "hands_on_ability": "优",
+        "focus_efficiency": "优",
+        "overall_evaluation": "优",
+        "last_homework_status": "无",
+        "additional_comments": ""
+      },
+      "林景赫": {
+        "logic_thinking": "优",
+        "content_understanding": "优",
+        "task_completion": "优",
+        "listening_habit": "优",
+        "problem_solving": "优",
+        "independent_analysis": "优",
+        "knowledge_proficiency": "优",
+        "imagination_creativity": "优",
+        "frustration_handling": "优",
+        "learning_method": "优",
+        "hands_on_ability": "优",
+        "focus_efficiency": "优",
+        "overall_evaluation": "优",
+        "last_homework_status": "无",
+        "additional_comments": ""
+      },
+      "解本昕": {
+        "logic_thinking": "优",
+        "content_understanding": "优",
+        "task_completion": "优",
+        "listening_habit": "优",
+        "problem_solving": "优",
+        "independent_analysis": "优",
+        "knowledge_proficiency": "优",
+        "imagination_creativity": "优",
+        "frustration_handling": "优",
+        "learning_method": "优",
+        "hands_on_ability": "优",
+        "focus_efficiency": "优",
+        "overall_evaluation": "优",
+        "last_homework_status": "无",
+        "additional_comments": ""
+      }
+    },
+    "cls_82915c49": {
+      "杰宝": {
+        "logic_thinking": "优",
+        "content_understanding": "优",
+        "task_completion": "良",
+        "listening_habit": "优",
+        "problem_solving": "优",
+        "independent_analysis": "良",
+        "knowledge_proficiency": "优",
+        "imagination_creativity": "优",
+        "frustration_handling": "优",
+        "learning_method": "优",
+        "hands_on_ability": "优",
+        "focus_efficiency": "优",
+        "overall_evaluation": "优",
+        "last_homework_status": "无",
+        "additional_comments": "测试类常见的测IC觉得"
+      },
+      "解本昕": {
+        "logic_thinking": "优",
+        "content_understanding": "优",
+        "task_completion": "优",
+        "listening_habit": "优",
+        "problem_solving": "优",
+        "independent_analysis": "优",
+        "knowledge_proficiency": "优",
+        "imagination_creativity": "优",
+        "frustration_handling": "优",
+        "learning_method": "优",
+        "hands_on_ability": "优",
+        "focus_efficiency": "优",
+        "overall_evaluation": "优",
+        "last_homework_status": "无",
+        "additional_comments": ""
+      }
+    }
+  },
+  "default_other_notes": "本次课无其他注意事项",
+  "student_next_lesson": {
+    "cls_f4442cb0": {
+      "一一": 3,
+      "亮亮": 2,
+      "饭饭": 3,
+      "孙子清": 3,
+      "办办": 2,
+      "林景泽": 2
+    },
+    "cls_55818768": {
+      "赵宏泽": 3,
+      "于馨媛": 14,
+      "朱王佳懿": 3,
+      "赵如一": 3,
+      "潘丁怡嘉": 3
+    }
+  },
+  "class_output_paths": {
+    "cls_f4442cb0": "D:\\CFiles\\Desktop",
+    "cls_55818768": "D:/CFiles/Desktop"
+  },
+  "theme": "dark"
+}

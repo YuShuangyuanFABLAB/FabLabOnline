@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上下文检索 - Anthropic AI方法论</title>
+    <style>
+        :root { --bg-color: #0f0f0f; --text-color: #e0e0e0; --accent-color: #d97706; --accent-light: #f59e0b; --card-bg: #1a1a1a; --border-color: #333; --code-bg: #252525; --link-color: #60a5fa; --quote-bg: #1e293b; --case-bg: #1a2a1a; --case-border: #2d5a2d; }
+        @media (prefers-color-scheme: light) { :root { --bg-color: #f8fafc; --text-color: #1e293b; --card-bg: #ffffff; --border-color: #e2e8f0; --code-bg: #f1f5f9; --link-color: #2563eb; --quote-bg: #fffbeb; --case-bg: #f0fdf4; --case-border: #86efac; } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-color); line-height: 1.7; font-size: 16px; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        h1 { font-size: 2.2rem; margin-bottom: 20px; color: var(--accent-light); border-bottom: 2px solid var(--accent-color); padding-bottom: 15px; }
+        h2 { font-size: 1.6rem; margin: 40px 0 20px; color: var(--accent-light); }
+        h3 { font-size: 1.3rem; margin: 25px 0 15px; }
+        h4 { font-size: 1.1rem; margin: 20px 0 10px; }
+        p { margin-bottom: 15px; }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        blockquote { background: var(--quote-bg); border-left: 4px solid var(--accent-color); padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        ul, ol { margin: 15px 0; padding-left: 25px; }
+        li { margin-bottom: 8px; }
+        code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Consolas, monospace; font-size: 0.9em; }
+        pre { background: var(--code-bg); padding: 20px; border-radius: 8px; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border-color); }
+        pre code { padding: 0; background: none; font-size: 0.85rem; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px 15px; text-align: left; border: 1px solid var(--border-color); }
+        th { background: var(--quote-bg); font-weight: 600; }
+        tr:nth-child(even) { background: var(--card-bg); }
+        .case-study { background: var(--case-bg); border: 2px solid var(--case-border); border-radius: 12px; padding: 25px; margin: 30px 0; }
+        .case-study h3 { color: #4ade80; margin-top: 0; }
+        .case-tag { display: inline-block; background: var(--accent-color); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 15px; }
+        .highlight { background: linear-gradient(135deg, var(--quote-bg), var(--card-bg)); border: 1px solid var(--accent-color); border-radius: 12px; padding: 20px; margin: 25px 0; }
+        .highlight strong { color: var(--accent-light); }
+        .nav-back { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; }
+        hr { border: none; border-top: 1px solid var(--border-color); margin: 40px 0; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="nav-back">← 返回目录</a>
+
+    <h1>上下文检索（Contextual Retrieval）</h1>
+
+    <div class="highlight">
+        <strong>来源：</strong> <a href="https://www.anthropic.com/engineering/contextual-retrieval" target="_blank">https://www.anthropic.com/engineering/contextual-retrieval</a><br>
+        <strong>发布日期：</strong> 2024-09-19
+    </div>
+
+    <h2>一、传统RAG的问题</h2>
+    <p>文档分割成小块时，单个块可能缺乏足够的上下文。</p>
+<pre><code>问题："ACME Corp在Q2 2023的收入增长是多少？"
+相关块："公司收入较上季度增长3%"
+问题：块本身没有说明是哪家公司或时间段</code></pre>
+
+    <h2>二、解决方案</h2>
+    <p>在每个块前面添加特定于块的解释性上下文：</p>
+<pre><code>原始块："The company's revenue grew by 3% over the previous quarter."
+
+上下文化块："This chunk is from an SEC filing on ACME corp's performance
+in Q2 2023. The company's revenue grew by 3% over the previous quarter."</code></pre>
+
+    <h2>三、性能提升</h2>
+    <table>
+        <tr><th>技术</th><th>检索失败率</th><th>改进</th></tr>
+        <tr><td>基线（无优化）</td><td>5.7%</td><td>-</td></tr>
+        <tr><td>Contextual Embeddings</td><td>3.7%</td><td>35%</td></tr>
+        <tr><td>+ Contextual BM25</td><td>2.9%</td><td>49%</td></tr>
+        <tr><td>+ Reranking</td><td>1.9%</td><td>67%</td></tr>
+    </table>
+
+    <h2>四、实战案例</h2>
+
+    <div class="case-study">
+        <span class="case-tag">案例 1</span>
+        <h3>企业知识库</h3>
+        <h4>场景</h4>
+        <p>构建公司内部文档搜索系统，文档类型多样。</p>
+        <h4>实现要点</h4>
+        <ul>
+            <li>将文档分割成800 token的块</li>
+            <li>使用Claude为每个块生成上下文</li>
+            <li>Voyage模型生成嵌入</li>
+            <li>存储到Pinecone向量数据库</li>
+        </ul>
+        <h4>效果</h4>
+        <p>检索准确率从72%提升到89%</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 2</span>
+        <h3>法律文档检索</h3>
+        <h4>场景</h4>
+        <p>律师事务所的案例和法规检索，需要精确引用。</p>
+        <h4>方案</h4>
+        <ul>
+            <li>Contextual Embeddings + BM25混合检索</li>
+            <li>LLM重排序top-k结果</li>
+        </ul>
+        <h4>效果</h4>
+        <p>律师检索时间减少50%，案例引用准确率提升35%</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 3</span>
+        <h3>技术文档问答</h3>
+        <h4>场景</h4>
+        <p>API文档和技术手册的智能问答。</p>
+        <h4>方案</h4>
+        <ul>
+            <li>分离代码块和文本</li>
+            <li>为代码块添加功能说明上下文</li>
+            <li>版本过滤支持</li>
+        </ul>
+        <h4>效果</h4>
+        <p>开发者问题解决时间减少60%</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 4</span>
+        <h3>客服知识库</h3>
+        <h4>场景</h4>
+        <p>电商平台客服知识检索，需要快速响应。</p>
+        <h4>方案</h4>
+        <ul>
+            <li>索引FAQ并添加产品分类上下文</li>
+            <li>查询缓存</li>
+            <li>低置信度时重写查询</li>
+        </ul>
+        <h4>效果</h4>
+        <p>首次解决率提升25%，响应时间从3分钟降到30秒</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 5</span>
+        <h3>研究论文检索</h3>
+        <h4>场景</h4>
+        <p>学术研究论文的语义检索，跨学科引用。</p>
+        <h4>方案</h4>
+        <ul>
+            <li>按部分处理（摘要、方法、结论等）</li>
+            <li>上下文包含论文元信息（标题、作者、领域）</li>
+            <li>按论文聚合检索结果</li>
+        </ul>
+        <h4>效果</h4>
+        <p>研究人员找到相关论文时间减少70%</p>
+    </div>
+
+    <h2>五、最佳实践</h2>
+    <table>
+        <tr><th>参数</th><th>建议</th></tr>
+        <tr><td>块大小</td><td>512-1024 tokens</td></tr>
+        <tr><td>重叠</td><td>10-20%</td></tr>
+        <tr><td>检索块数</td><td>20个最佳</td></tr>
+        <tr><td>嵌入模型</td><td>Voyage或Gemini</td></tr>
+    </table>
+
+    <hr>
+    <p><a href="../index.html">← 返回目录</a></p>
+</body>
+</html>

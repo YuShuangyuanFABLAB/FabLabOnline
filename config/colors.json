@@ -1,0 +1,12 @@
+{
+  "highlight_color": "0070C0",
+  "difficulty_color": "ED7D31",
+  "header_color": "D3F1F0",
+  "accent_color": "36A4A4",
+  "highlight": "#0070C0",
+  "difficulty": "#ED7D31",
+  "excellent": "#00B050",
+  "good": "#0070C0",
+  "medium": "#FFC000",
+  "poor": "#FF0000"
+}

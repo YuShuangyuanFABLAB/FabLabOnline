@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>并行Claude编译器 - Anthropic AI方法论</title>
+    <style>
+        :root {
+            --bg-color: #0f0f0f;
+            --text-color: #e0e0e0;
+            --accent-color: #d97706;
+            --accent-light: #f59e0b;
+            --card-bg: #1a1a1a;
+            --border-color: #333;
+            --code-bg: #252525;
+            --link-color: #60a5fa;
+            --quote-bg: #1e293b;
+            --case-bg: #1a2a1a;
+            --case-border: #2d5a2d;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f8fafc;
+                --text-color: #1e293b;
+                --card-bg: #ffffff;
+                --border-color: #e2e8f0;
+                --code-bg: #f1f5f9;
+                --link-color: #2563eb;
+                --quote-bg: #fffbeb;
+                --case-bg: #f0fdf4;
+                --case-border: #86efac;
+            }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            font-size: 16px;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 2.2rem; margin-bottom: 20px; color: var(--accent-light); border-bottom: 2px solid var(--accent-color); padding-bottom: 15px; }
+        h2 { font-size: 1.6rem; margin: 40px 0 20px; color: var(--accent-light); }
+        h3 { font-size: 1.3rem; margin: 25px 0 15px; }
+        h4 { font-size: 1.1rem; margin: 20px 0 10px; }
+        p { margin-bottom: 15px; }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        blockquote { background: var(--quote-bg); border-left: 4px solid var(--accent-color); padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        ul, ol { margin: 15px 0; padding-left: 25px; }
+        li { margin-bottom: 8px; }
+        code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Consolas, monospace; font-size: 0.9em; }
+        pre { background: var(--code-bg); padding: 20px; border-radius: 8px; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border-color); }
+        pre code { padding: 0; background: none; font-size: 0.85rem; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px 15px; text-align: left; border: 1px solid var(--border-color); }
+        th { background: var(--quote-bg); font-weight: 600; }
+        tr:nth-child(even) { background: var(--card-bg); }
+        .case-study { background: var(--case-bg); border: 2px solid var(--case-border); border-radius: 12px; padding: 25px; margin: 30px 0; }
+        .case-study h3 { color: #4ade80; margin-top: 0; }
+        .case-tag { display: inline-block; background: var(--accent-color); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 15px; }
+        .highlight { background: linear-gradient(135deg, var(--quote-bg), var(--card-bg)); border: 1px solid var(--accent-color); border-radius: 12px; padding: 20px; margin: 25px 0; }
+        .highlight strong { color: var(--accent-light); }
+        .nav-back { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; }
+        hr { border: none; border-top: 1px solid var(--border-color); margin: 40px 0; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="nav-back">← 返回目录</a>
+
+    <h1>并行Claude编译器</h1>
+
+    <div class="highlight">
+        <strong>来源：</strong> <a href="https://www.anthropic.com/engineering/claude-c-compiler" target="_blank">https://www.anthropic.com/engineering/claude-c-compiler</a><br>
+        <strong>发布日期：</strong> 2026-02-05
+    </div>
+
+    <h2>一、项目概述</h2>
+
+    <h3>1.1 项目背景</h3>
+    <p>使用Claude从零开始构建一个C语言编译器，展示AI辅助复杂系统开发的能力。</p>
+
+    <h3>1.2 编译器结构</h3>
+    <pre><code>编译器架构：
+├── 词法分析（Lexer）→ Token流
+├── 语法分析（Parser）→ AST
+├── 语义分析（Semantic）→ 带类型的AST
+├── 中间代码生成（IR）→ 中间表示
+├── 优化（Optimizer）→ 优化后的IR
+└── 代码生成（CodeGen）→ 目标代码</code></pre>
+
+    <h2>二、词法分析器</h2>
+
+    <h3>2.1 Token类型</h3>
+    <ul>
+        <li>字面量：INT, FLOAT, STRING, CHAR</li>
+        <li>关键字：int, float, char, void, if, else, while, for, return</li>
+        <li>运算符：+, -, *, /, ==, !=, &lt;, &lt;=, &gt;, &gt;=</li>
+        <li>分隔符：(, ), {, }, [, ], ;, ,</li>
+    </ul>
+
+    <h2>三、语法分析器</h2>
+
+    <h3>3.1 AST节点</h3>
+    <ul>
+        <li>Program - 程序</li>
+        <li>FunctionDecl - 函数声明</li>
+        <li>VarDecl - 变量声明</li>
+        <li>IfStmt - if语句</li>
+        <li>WhileStmt - while语句</li>
+        <li>BinaryExpr - 二元表达式</li>
+    </ul>
+
+    <h2>四、代码生成器</h2>
+
+    <h3>4.1 目标代码</h3>
+    <p>生成x86-64汇编代码，包括：</p>
+    <ul>
+        <li>函数序言和尾声</li>
+        <li>栈帧管理</li>
+        <li>表达式求值</li>
+        <li>控制流指令</li>
+    </ul>
+
+    <h2>五、完整编译器</h2>
+
+    <h3>5.1 编译流程</h3>
+    <pre><code>源代码 → Lexer → Parser → CodeGen → 汇编代码 → gcc → 可执行文件</code></pre>
+
+    <h2>六、最佳实践</h2>
+
+    <h3>6.1 开发策略</h3>
+    <table>
+        <tr><th>阶段</th><th>重点</th></tr>
+        <tr><td>词法分析</td><td>完整的Token定义</td></tr>
+        <tr><td>语法分析</td><td>清晰的AST结构</td></tr>
+        <tr><td>语义分析</td><td>类型检查</td></tr>
+        <tr><td>代码生成</td><td>正确性优先</td></tr>
+    </table>
+
+    <h3>6.2 测试策略</h3>
+    <ul>
+        <li>单元测试每个阶段</li>
+        <li>使用简单测试用例开始</li>
+        <li>逐步增加复杂度</li>
+        <li>回归测试</li>
+    </ul>
+
+    <h2>七、总结</h2>
+    <div class="highlight">
+        <strong>构建编译器的关键：</strong>
+        <ol>
+            <li>模块化设计：每个阶段独立</li>
+            <li>迭代开发：从简单到复杂</li>
+            <li>充分测试：保证正确性</li>
+            <li>清晰的数据结构：Token、AST</li>
+        </ol>
+    </div>
+
+    <hr>
+    <p><a href="../index.html">← 返回目录</a></p>
+</body>
+</html>

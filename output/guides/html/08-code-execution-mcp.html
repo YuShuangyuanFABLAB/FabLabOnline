@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代码执行与MCP - Anthropic AI方法论</title>
+    <style>
+        :root {
+            --bg-color: #0f0f0f;
+            --text-color: #e0e0e0;
+            --accent-color: #d97706;
+            --accent-light: #f59e0b;
+            --card-bg: #1a1a1a;
+            --border-color: #333;
+            --code-bg: #252525;
+            --link-color: #60a5fa;
+            --quote-bg: #1e293b;
+            --case-bg: #1a2a1a;
+            --case-border: #2d5a2d;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f8fafc;
+                --text-color: #1e293b;
+                --card-bg: #ffffff;
+                --border-color: #e2e8f0;
+                --code-bg: #f1f5f9;
+                --link-color: #2563eb;
+                --quote-bg: #fffbeb;
+                --case-bg: #f0fdf4;
+                --case-border: #86efac;
+            }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            font-size: 16px;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 2.2rem; margin-bottom: 20px; color: var(--accent-light); border-bottom: 2px solid var(--accent-color); padding-bottom: 15px; }
+        h2 { font-size: 1.6rem; margin: 40px 0 20px; color: var(--accent-light); }
+        h3 { font-size: 1.3rem; margin: 25px 0 15px; }
+        h4 { font-size: 1.1rem; margin: 20px 0 10px; }
+        p { margin-bottom: 15px; }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        blockquote { background: var(--quote-bg); border-left: 4px solid var(--accent-color); padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        ul, ol { margin: 15px 0; padding-left: 25px; }
+        li { margin-bottom: 8px; }
+        code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Consolas, monospace; font-size: 0.9em; }
+        pre { background: var(--code-bg); padding: 20px; border-radius: 8px; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border-color); }
+        pre code { padding: 0; background: none; font-size: 0.85rem; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px 15px; text-align: left; border: 1px solid var(--border-color); }
+        th { background: var(--quote-bg); font-weight: 600; }
+        tr:nth-child(even) { background: var(--card-bg); }
+        .case-study { background: var(--case-bg); border: 2px solid var(--case-border); border-radius: 12px; padding: 25px; margin: 30px 0; }
+        .case-study h3 { color: #4ade80; margin-top: 0; }
+        .case-tag { display: inline-block; background: var(--accent-color); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 15px; }
+        .highlight { background: linear-gradient(135deg, var(--quote-bg), var(--card-bg)); border: 1px solid var(--accent-color); border-radius: 12px; padding: 20px; margin: 25px 0; }
+        .highlight strong { color: var(--accent-light); }
+        .nav-back { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; }
+        hr { border: none; border-top: 1px solid var(--border-color); margin: 40px 0; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="nav-back">← 返回目录</a>
+
+    <h1>代码执行与MCP</h1>
+
+    <div class="highlight">
+        <strong>来源：</strong> <a href="https://www.anthropic.com/engineering/model-context-protocol" target="_blank">https://www.anthropic.com/engineering/model-context-protocol</a><br>
+        <strong>发布日期：</strong> 2025-11-04
+    </div>
+
+    <h2>一、MCP协议概述</h2>
+
+    <h3>1.1 什么是MCP</h3>
+    <p>Model Context Protocol (MCP) 是一个开放标准，用于连接AI助手与外部系统。它提供了一种标准化的方式让模型与工具、数据源进行交互。</p>
+
+    <h3>1.2 核心优势</h3>
+    <table>
+        <tr><th>优势</th><th>说明</th></tr>
+        <tr><td>标准化</td><td>统一的接口规范</td></tr>
+        <tr><td>可扩展</td><td>轻松添加新工具</td></tr>
+        <tr><td>安全</td><td>受控的访问机制</td></tr>
+        <tr><td>解耦</td><td>模型与工具独立演进</td></tr>
+    </table>
+
+    <h3>1.3 架构组件</h3>
+    <pre><code>MCP架构：
+├── MCP Server（服务端）
+├── MCP Client（客户端）
+└── Transport（传输层）</code></pre>
+
+    <h2>二、代码执行安全</h2>
+
+    <h3>2.1 安全原则</h3>
+    <ol>
+        <li><strong>最小权限</strong>：只授予必要权限</li>
+        <li><strong>沙箱隔离</strong>：限制代码执行环境</li>
+        <li><strong>输入验证</strong>：验证所有输入</li>
+        <li><strong>输出过滤</strong>：过滤敏感信息</li>
+    </ol>
+
+    <h2>三、实战案例</h2>
+
+    <div class="case-study">
+        <span class="case-tag">案例 1</span>
+        <h3>MCP代码执行服务器</h3>
+        <h4>场景</h4>
+        <p>创建一个安全的代码执行MCP服务器</p>
+
+        <h4>工具定义</h4>
+        <pre><code>{
+    "name": "execute_code",
+    "description": "在安全沙箱中执行代码",
+    "inputSchema": {
+        "code": "string",
+        "language": "python|javascript|go"
+    }
+}</code></pre>
+
+        <h4>关键特性</h4>
+        <ul>
+            <li>Docker沙箱隔离</li>
+            <li>超时和资源限制</li>
+            <li>多语言支持</li>
+        </ul>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 2</span>
+        <h3>文件系统MCP服务器</h3>
+        <h4>场景</h4>
+        <p>创建安全的文件系统访问MCP服务器</p>
+
+        <h4>工具</h4>
+        <ul>
+            <li><code>read_file</code> - 读取文件</li>
+            <li><code>write_file</code> - 写入文件</li>
+            <li><code>list_directory</code> - 列出目录</li>
+            <li><code>search_files</code> - 搜索文件</li>
+        </ul>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 3</span>
+        <h3>数据库MCP服务器</h3>
+        <h4>场景</h4>
+        <p>创建安全的数据库访问MCP服务器</p>
+
+        <h4>安全措施</h4>
+        <ul>
+            <li>只允许SELECT查询</li>
+            <li>检查危险操作</li>
+            <li>限制可访问的表</li>
+        </ul>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 4</span>
+        <h3>API集成MCP服务器</h3>
+        <h4>场景</h4>
+        <p>创建外部API集成MCP服务器</p>
+
+        <h4>功能</h4>
+        <ul>
+            <li>GET请求执行</li>
+            <li>POST请求执行</li>
+            <li>认证支持</li>
+        </ul>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 5</span>
+        <h3>组合多个MCP服务器</h3>
+        <h4>场景</h4>
+        <p>创建组合多个能力的MCP服务器</p>
+
+        <h4>特点</h4>
+        <ul>
+            <li>统一工具命名（前缀）</li>
+            <li>自动路由到对应服务器</li>
+            <li>灵活组合扩展</li>
+        </ul>
+    </div>
+
+    <h2>四、最佳实践</h2>
+
+    <h3>4.1 安全设计</h3>
+    <table>
+        <tr><th>原则</th><th>实践</th></tr>
+        <tr><td>最小权限</td><td>只授予必要权限</td></tr>
+        <tr><td>输入验证</td><td>验证所有输入</td></tr>
+        <tr><td>沙箱隔离</td><td>限制执行环境</td></tr>
+        <tr><td>审计日志</td><td>记录所有操作</td></tr>
+    </table>
+
+    <h3>4.2 性能优化</h3>
+    <ul>
+        <li>使用连接池</li>
+        <li>实现缓存机制</li>
+        <li>异步处理请求</li>
+        <li>资源限制和超时</li>
+    </ul>
+
+    <h2>五、总结</h2>
+    <div class="highlight">
+        <strong>MCP代码执行的核心要素：</strong>
+        <ol>
+            <li>标准化协议：统一的工具接口</li>
+            <li>安全隔离：受控的执行环境</li>
+            <li>灵活扩展：易于添加新能力</li>
+            <li>组合复用：多个服务器可组合</li>
+        </ol>
+    </div>
+
+    <hr>
+    <p><a href="../index.html">← 返回目录</a></p>
+</body>
+</html>

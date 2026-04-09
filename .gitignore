@@ -1,0 +1,54 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Output files
+output/*.pptx
+output/*.xlsx
+
+# Temporary files
+*.tmp
+*.temp
+.~*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Extracted PPT files
+pptx_extracted/
+
+# Background task files (keep structure)
+# Keep .agent directory but ignore temp files
+.agent/*.tmp
+
+# PPT temp files
+~$*.ppt*
+
+# Claude Code settings
+.claude/
+
+# Original PPT template (keep in templates folder)
+课程反馈.pptx

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anthropic AI编程方法论 - 完整指南索引</title>
+    <style>
+        :root {
+            --bg-color: #0f0f0f;
+            --text-color: #e0e0e0;
+            --accent-color: #d97706;
+            --accent-light: #f59e0b;
+            --card-bg: #1a1a1a;
+            --border-color: #333;
+            --code-bg: #252525;
+            --link-color: #60a5fa;
+            --quote-bg: #1e293b;
+            --part1: #3b82f6;
+            --part2: #8b5cf6;
+            --part3: #ec4899;
+            --part4: #10b981;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f8fafc;
+                --text-color: #1e293b;
+                --card-bg: #ffffff;
+                --border-color: #e2e8f0;
+                --code-bg: #f1f5f9;
+                --link-color: #2563eb;
+                --quote-bg: #fffbeb;
+            }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            font-size: 16px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 2.5rem; margin-bottom: 20px; color: var(--accent-light); border-bottom: 3px solid var(--accent-color); padding-bottom: 20px; text-align: center; }
+        h2 { font-size: 1.8rem; margin: 50px 0 25px; color: var(--accent-light); border-left: 4px solid var(--accent-color); padding-left: 15px; }
+        h3 { font-size: 1.4rem; margin: 30px 0 15px; color: var(--text-color); }
+        h4 { font-size: 1.1rem; margin: 20px 0 10px; }
+        p { margin-bottom: 15px; }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        blockquote { background: var(--quote-bg); border-left: 4px solid var(--accent-color); padding: 20px 25px; margin: 25px 0; border-radius: 0 12px 12px 0; font-size: 1.1rem; }
+        blockquote p { margin: 0; }
+        ul, ol { margin: 15px 0; padding-left: 25px; }
+        li { margin-bottom: 10px; }
+        code { background: var(--code-bg); padding: 2px 8px; border-radius: 4px; font-family: 'SF Mono', Consolas, monospace; font-size: 0.9em; }
+        pre { background: var(--code-bg); padding: 20px; border-radius: 12px; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border-color); }
+        pre code { padding: 0; background: none; font-size: 0.85rem; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 14px 16px; text-align: left; border: 1px solid var(--border-color); }
+        th { background: var(--quote-bg); font-weight: 600; }
+        tr:nth-child(even) { background: var(--card-bg); }
+        .hero { text-align: center; padding: 40px 0; }
+        .hero .stats { display: flex; justify-content: center; gap: 40px; margin: 30px 0; flex-wrap: wrap; }
+        .hero .stat { text-align: center; }
+        .hero .stat-number { font-size: 3rem; font-weight: bold; color: var(--accent-light); }
+        .hero .stat-label { font-size: 1rem; opacity: 0.8; }
+        .article-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; margin: 30px 0; }
+        .article-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; transition: all 0.3s; position: relative; overflow: hidden; }
+        .article-card:hover { transform: translateY(-4px); box-shadow: 0 10px 40px rgba(0,0,0,0.3); border-color: var(--accent-color); }
+        .article-card .part-tag { position: absolute; top: 0; right: 0; padding: 5px 12px; font-size: 0.75rem; font-weight: bold; border-radius: 0 12px 0 12px; }
+        .article-card .part-1 { background: var(--part1); }
+        .article-card .part-2 { background: var(--part2); }
+        .article-card .part-3 { background: var(--part3); }
+        .article-card .part-4 { background: var(--part4); }
+        .article-card h3 { margin-top: 0; padding-right: 80px; }
+        .article-card .meta { font-size: 0.85rem; opacity: 0.7; margin-bottom: 10px; }
+        .article-card .keywords { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .article-card .keyword { background: var(--code-bg); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; }
+        .article-card .links { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color); display: flex; gap: 15px; }
+        .article-card .links a { font-size: 0.9rem; }
+        .section-intro { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; margin: 20px 0; }
+        .highlight { background: linear-gradient(135deg, var(--quote-bg), var(--card-bg)); border: 1px solid var(--accent-color); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .highlight strong { color: var(--accent-light); }
+        .principles { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0; }
+        .principle { background: var(--card-bg); border: 2px solid var(--accent-color); border-radius: 12px; padding: 25px; text-align: center; }
+        .principle h4 { color: var(--accent-light); margin-bottom: 10px; }
+        .nav-links { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin: 30px 0; }
+        .nav-links a { background: var(--card-bg); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 8px; transition: all 0.2s; }
+        .nav-links a:hover { border-color: var(--accent-color); background: var(--quote-bg); }
+        .learning-path { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; margin: 30px 0; }
+        .learning-path .week { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        .learning-path .week:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .learning-path .week-title { font-weight: bold; color: var(--accent-light); margin-bottom: 10px; }
+        hr { border: none; border-top: 1px solid var(--border-color); margin: 50px 0; }
+        @media (max-width: 768px) {
+            .article-grid { grid-template-columns: 1fr; }
+            .hero .stats { gap: 20px; }
+            .hero .stat-number { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>Anthropic AI编程方法论</h1>
+        <p style="font-size: 1.2rem; opacity: 0.8;">完整指南索引 | 15篇文章 | 75个实战案例</p>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number">15</div>
+                <div class="stat-label">核心文章</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">75</div>
+                <div class="stat-label">实战案例</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">4</div>
+                <div class="stat-label">知识模块</div>
+            </div>
+        </div>
+    </div>
+
+    <blockquote>
+        <strong>核心原则：</strong>"寻找最简单的解决方案，只在需要时增加复杂度。"
+    </blockquote>
+
+    <h2>三大设计原则</h2>
+    <div class="principles">
+        <div class="principle">
+            <h4>简洁性</h4>
+            <p>保持Agent设计简单<br>避免过度工程</p>
+        </div>
+        <div class="principle">
+            <h4>透明性</h4>
+            <p>明确显示规划步骤<br>和决策过程</p>
+        </div>
+        <div class="principle">
+            <h4>可测试性</h4>
+            <p>精心设计ACI<br>每个组件可测试</p>
+        </div>
+    </div>
+
+    <h2>快速导航</h2>
+    <div class="nav-links">
+        <a href="#part1">基础架构</a>
+        <a href="#part2">评估工程</a>
+        <a href="#part3">高级架构</a>
+        <a href="#part4">工具实战</a>
+        <a href="#learning">学习路径</a>
+    </div>
+
+    <h2 id="part1">第一部分：Agent基础架构</h2>
+    <div class="section-intro">
+        <p>覆盖Agent的核心概念、Claude Code使用、长期项目管理和知识检索。适合入门学习和日常开发。</p>
+    </div>
+    <div class="article-grid">
+        <div class="article-card">
+            <span class="part-tag part-1">基础</span>
+            <h3><a href="md/01-building-effective-agents.md">01. 构建有效的AI Agent</a></h3>
+            <div class="meta">2024-12-19</div>
+            <p>Workflows vs Agents区分，5种工作流模式详解，Agent设计原则。</p>
+            <div class="keywords">
+                <span class="keyword">Workflows</span>
+                <span class="keyword">Agents</span>
+                <span class="keyword">路由</span>
+            </div>
+            <div class="links">
+                <a href="md/01-building-effective-agents.md">MD</a>
+                <a href="html/01-building-effective-agents.html">HTML</a>
+            </div>
+        </div>
+        <div class="article-card">
+            <span class="part-tag part-1">基础</span>
+            <h3><a href="md/02-claude-code-best-practices.md">02. Claude Code最佳实践</a></h3>
+            <div class="meta">2025-04-18</div>
+            <p>CLAUDE.md配置指南，6种常用工作流，多Claude协作技巧。</p>
+            <div class="keywords">
+                <span class="keyword">CLAUDE.md</span>
+                <span class="keyword">工作流</span>
+                <span class="keyword">多Claude</span>
+            </div>
+            <div class="links">
+                <a href="md/02-claude-code-best-practices.md">MD</a>
+                <a href="html/02-claude-code-best-practices.html">HTML</a>
+            </div>
+        </div>
+        <div class="article-card">
+            <span class="part-tag part-1">基础</span>
+            <h3><a href="md/03-long-running-agents.md">03. 长期运行Agent</a></h3>
+            <div class="meta">2025-11-26</div>
+            <p>功能列表设计，增量开发机制，跨会话连续性保证。</p>
+            <div class="keywords">
+                <span class="keyword">功能列表</span>
+                <span class="keyword">增量开发</span>
+            </div>
+            <div class="links">
+                <a href="md/03-long-running-agents.md">MD</a>
+                <a href="html/03-long-running-agents.html">HTML</a>
+            </div>
+        </div>
+        <div class="article-card">
+            <span class="part-tag part-1">基础</span>
+            <h3><a href="md/04-contextual-retrieval.md">04. 上下文检索</a></h3>
+            <div class="meta">2024-09-19</div>
+            <p>Contextual Retrieval方案，67%检索失败率降低，RAG优化。</p>
+            <div class="keywords">
+                <span class="keyword">RAG</span>
+                <span class="keyword">嵌入</span>
+                <span class="keyword">检索</span>
+            </div>
+            <div class="links">
+                <a href="md/04-contextual-retrieval.md">MD</a>
+                <a href="html/04-contextual-retrieval.html">HTML</a>
+            </div>
+        </div>
+    </div>
+
+    <h2 id="part2">第二部分：评估与工程</h2>
+    <div class="section-intro">
+        <p>深入Agent评估体系和上下文工程，掌握质量保证和性能优化的核心技能。</p>
+    </div>
+    <div class="article-grid">
+        <div class="article-card">
+            <span class="part-tag part-2">评估</span>
+            <h3><a href="md/05-ai-agent-evals.md">05. AI Agent评估体系</a></h3>
+            <div class="meta">2026-01-09</div>
+            <p>三种评分器类型，pass@k指标，评估开发路线图。</p>
+            <div class="keywords">
+                <span class="keyword">评分器</span>
+                <span class="keyword">pass@k</span>
+                <span class="keyword">评估</span>
+            </div>
+            <div class="links">
+                <a href="md/05-ai-agent-evals.md">MD</a>
+                <a href="html/05-ai-agent-evals.html">HTML</a>
+            </div>
+        </div>
+        <div class="article-card">
+            <span class="part-tag part-2">评估</span>
+            <h3><a href="md/06-context-engineering.md">06. 上下文工程</a></h3>
+            <div class="meta">2025-09-29</div>
+            <p>上下文腐烂问题，压缩策略，子代理架构设计。</p>
+            <div class="keywords">
+                <span class="keyword">上下文腐烂</span>
+                <span class="keyword">压缩</span>
+                <span class="keyword">子代理</span>
+            </div>
+            <div class="links">
+                <a href="md/06-context-engineering.md">MD</a>
+                <a href="html/06-context-engineering.html">HTML</a>
+            </div>
+        </div>
+    </div>
+
+    <h2 id="part3">第三部分：高级架构</h2>
+    <div class="section-intro">
+        <p>探索多Agent系统、MCP协议、桌面扩展等高级主题，以及生产环境的可靠性保障。</p>
+    </div>
+    <div class="article-grid">
+        <div class="article-card">
+            <span class="part-tag part-3">高级</span>
+            <h3><a href="md/07-multi-agent-system.md">07. 多代理研究系统</a></h3>
+            <div class="meta">2025-06-13</div>
+            <p>90.2%性能提升，主代理+子代理架构，并行执行策略。</p>
+            <div class="keywords">
+                <span class="keyword">主代理</span>
+                <span class="keyword">并行</span>
+                <span class="keyword">研究</span>
+            </div>
+            <div class="links">
+                <a href="md/07-multi-agent-system.md">MD</a>
+                <a href="html/07-multi-agent-system.html">HTML</a>
+            </div>
+        </div>
+        <div class="article-card">
+            <span class="part-tag part-3">高级</span>
+            <h3><a href="md/08-code-execution-mcp.md">08. 代码执行与MCP</a></h3>
+            <div class="meta">2025-11-04</div>
+            <p>98.7% Token减少，渐进式披露，代码API设计。</p>
+            <div class="keywords">
+                <span class="keyword">MCP</span>
+                <span class="keyword">Token优化</span>
+            </div>
+            <div class="links">
+                <a href="md/08-code-execution-mcp.md">MD</a>
+                <a href="html/08-code-execution-mcp.html">HTML</a>
+            </div>
+        </div>
+        <div class="article-card">
+            <span class="part-tag part-3">高级</span>
+            <h3><a href="md/09-desktop-extensions.md">09. 桌面扩展</a></h3>
+            <div class="meta">2025-06-26</div>
+            <p>MCPB格式规范，一键安装，安全密钥存储。</p>
+            <div class="keywords">
+                <span class="keyword">MCPB</span>
+                <span class="keyword">一键安装</span>
+            </div>
+            <div class="links">
+                <a href="md/09-desktop-extensions.md">MD</a>
+                <a href="html/09-desktop-extensions.html">HTML</a>
+            </div>
+        </div>
+        <div class="article-card">
+            <span class="part-tag part-3">高级</span>
+            <h3><a href="md/10-postmortem.md">10. 事后分析</a></h3>
+            <div class="meta">2025-09-17</div>
+            <p>三个基础设施bug案例，检测困难分析，改进措施。</p>
+            <div class="keywords">
+                <span class="keyword">质量保证</span>
+                <span class="keyword">基础设施</span>
+            </div>
+            <div class="links">
+                <a href="md/10-postmortem.md">MD</a>
+                <a href="html/10-postmortem.html">HTML</a>
+            </div>
+        </div>
+    </div>
+
+    <h2 id="part4">第四部分：工具与实战</h2>
+    <div class="section-intro">
+        <p>实战导向的工具设计、代码Agent开发，以及大型项目的多Agent协作经验。</p>
+    </div>
+    <div class="article-grid">
+        <div class="article-card">
+            <span class="part-tag part-4">实战</span>
+            <h3><a href="md/11-advanced-tool-use.md">11. 高级工具使用</a></h3>
+            <div class="meta">2025-11-24</div>
+            <p>工具搜索工具，程序化调用，Tool Use Examples。</p>
+            <div class="keywords">
+                <span class="keyword">工具搜索</span>
+                <span class="keyword">程序化</span>
+            </div>
+            <div class="links">
+                <a href="md/11-advanced-tool-use.md">MD</a>
+                <a href="html/11-advanced-tool-use.html">HTML</a>
+            </div>
+        </div>
+        <div class="article-card">
+            <span class="part-tag part-4">实战</span>
+            <h3><a href="md/12-think-tool.md">12. 思考工具</a></h3>
+            <div class="meta">2025-03-20</div>
+            <p>结构化推理，τ-Bench 15-25%提升，决策可追溯。</p>
+            <div class="keywords">
+                <span class="keyword">推理</span>
+                <span class="keyword">τ-Bench</span>
+            </div>
+            <div class="links">
+                <a href="md/12-think-tool.md">MD</a>
+                <a href="html/12-think-tool.html">HTML</a>
+            </div>
+        </div>
+        <div class="article-card">
+            <span class="part-tag part-4">实战</span>
+            <h3><a href="md/13-swe-bench-sonnet.md">13. SWE-bench Sonnet</a></h3>
+            <div class="meta">2025-01-06</div>
+            <p>49%通过率，Agent脚手架设计，ACI四原则。</p>
+            <div class="keywords">
+                <span class="keyword">SWE-bench</span>
+                <span class="keyword">ACI</span>
+            </div>
+            <div class="links">
+                <a href="md/13-swe-bench-sonnet.md">MD</a>
+                <a href="html/13-swe-bench-sonnet.html">HTML</a>
+            </div>
+        </div>
+        <div class="article-card">
+            <span class="part-tag part-4">实战</span>
+            <h3><a href="md/14-writing-tools-agents.md">14. 为Agent编写工具</a></h3>
+            <div class="meta">2025-09-11</div>
+            <p>评估驱动开发，Poka-yoke设计，Token效率优化。</p>
+            <div class="keywords">
+                <span class="keyword">Poka-yoke</span>
+                <span class="keyword">工具工程</span>
+            </div>
+            <div class="links">
+                <a href="md/14-writing-tools-agents.md">MD</a>
+                <a href="html/14-writing-tools-agents.html">HTML</a>
+            </div>
+        </div>
+        <div class="article-card">
+            <span class="part-tag part-4">实战</span>
+            <h3><a href="md/15-parallel-claude-compiler.md">15. 并行Claude编译器</a></h3>
+            <div class="meta">2026-02-05</div>
+            <p>100,000+行C编译器，多Agent角色分工，协作模式。</p>
+            <div class="keywords">
+                <span class="keyword">多Agent</span>
+                <span class="keyword">编译器</span>
+            </div>
+            <div class="links">
+                <a href="md/15-parallel-claude-compiler.md">MD</a>
+                <a href="html/15-parallel-claude-compiler.html">HTML</a>
+            </div>
+        </div>
+    </div>
+
+    <h2 id="learning">推荐学习路径</h2>
+    <div class="learning-path">
+        <div class="week">
+            <div class="week-title">Week 1: 基础入门</div>
+            <ul>
+                <li>01-构建有效的AI Agent</li>
+                <li>02-Claude Code最佳实践</li>
+                <li>03-长期运行Agent</li>
+            </ul>
+        </div>
+        <div class="week">
+            <div class="week-title">Week 2: 评估与优化</div>
+            <ul>
+                <li>05-AI Agent评估体系</li>
+                <li>06-上下文工程</li>
+                <li>04-上下文检索</li>
+            </ul>
+        </div>
+        <div class="week">
+            <div class="week-title">Week 3: 高级架构</div>
+            <ul>
+                <li>07-多代理研究系统</li>
+                <li>08-代码执行与MCP</li>
+                <li>11-高级工具使用</li>
+            </ul>
+        </div>
+        <div class="week">
+            <div class="week-title">Week 4: 实战应用</div>
+            <ul>
+                <li>12-思考工具</li>
+                <li>13-SWE-bench Sonnet</li>
+                <li>14-为Agent编写工具</li>
+                <li>15-并行Claude编译器</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>按场景选择</h2>
+    <table>
+        <tr><th>你的场景</th><th>推荐阅读</th></tr>
+        <tr><td>刚开始学习Agent开发</td><td>01 → 02 → 05</td></tr>
+        <tr><td>使用Claude Code开发</td><td>02 → 03 → 06</td></tr>
+        <tr><td>构建知识库/RAG系统</td><td>04 → 06</td></tr>
+        <tr><td>开发复杂多Agent系统</td><td>07 → 11 → 15</td></tr>
+        <tr><td>优化Agent性能</td><td>05 → 08 → 14</td></tr>
+        <tr><td>设计工具系统</td><td>11 → 12 → 14</td></tr>
+        <tr><td>代码相关任务</td><td>13 → 08</td></tr>
+    </table>
+
+    <hr>
+
+    <div class="highlight">
+        <p><strong>来源：</strong> <a href="https://www.anthropic.com/engineering" target="_blank">https://www.anthropic.com/engineering</a></p>
+        <p><strong>整理日期：</strong> 2026-02-19 | <strong>文章数量：</strong> 15篇 | <strong>案例总数：</strong> 75个</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>长期运行Agent - Anthropic AI方法论</title>
+    <style>
+        :root { --bg-color: #0f0f0f; --text-color: #e0e0e0; --accent-color: #d97706; --accent-light: #f59e0b; --card-bg: #1a1a1a; --border-color: #333; --code-bg: #252525; --link-color: #60a5fa; --quote-bg: #1e293b; --case-bg: #1a2a1a; --case-border: #2d5a2d; }
+        @media (prefers-color-scheme: light) { :root { --bg-color: #f8fafc; --text-color: #1e293b; --card-bg: #ffffff; --border-color: #e2e8f0; --code-bg: #f1f5f9; --link-color: #2563eb; --quote-bg: #fffbeb; --case-bg: #f0fdf4; --case-border: #86efac; } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-color); line-height: 1.7; font-size: 16px; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        h1 { font-size: 2.2rem; margin-bottom: 20px; color: var(--accent-light); border-bottom: 2px solid var(--accent-color); padding-bottom: 15px; }
+        h2 { font-size: 1.6rem; margin: 40px 0 20px; color: var(--accent-light); }
+        h3 { font-size: 1.3rem; margin: 25px 0 15px; }
+        h4 { font-size: 1.1rem; margin: 20px 0 10px; }
+        p { margin-bottom: 15px; }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        blockquote { background: var(--quote-bg); border-left: 4px solid var(--accent-color); padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        ul, ol { margin: 15px 0; padding-left: 25px; }
+        li { margin-bottom: 8px; }
+        code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Consolas, monospace; font-size: 0.9em; }
+        pre { background: var(--code-bg); padding: 20px; border-radius: 8px; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border-color); }
+        pre code { padding: 0; background: none; font-size: 0.85rem; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px 15px; text-align: left; border: 1px solid var(--border-color); }
+        th { background: var(--quote-bg); font-weight: 600; }
+        tr:nth-child(even) { background: var(--card-bg); }
+        .case-study { background: var(--case-bg); border: 2px solid var(--case-border); border-radius: 12px; padding: 25px; margin: 30px 0; }
+        .case-study h3 { color: #4ade80; margin-top: 0; }
+        .case-tag { display: inline-block; background: var(--accent-color); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 15px; }
+        .highlight { background: linear-gradient(135deg, var(--quote-bg), var(--card-bg)); border: 1px solid var(--accent-color); border-radius: 12px; padding: 20px; margin: 25px 0; }
+        .highlight strong { color: var(--accent-light); }
+        .nav-back { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; }
+        hr { border: none; border-top: 1px solid var(--border-color); margin: 40px 0; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="nav-back">← 返回目录</a>
+
+    <h1>长期运行Agent</h1>
+
+    <div class="highlight">
+        <strong>来源：</strong> <a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank">effective-harnesses-for-long-running-agents</a><br>
+        <strong>发布日期：</strong> 2025-11-26
+    </div>
+
+    <h2>一、核心问题</h2>
+    <p>Agent跨多个上下文窗口工作的挑战：</p>
+    <ul>
+        <li><strong>无记忆</strong>：每个新会话开始时没有之前记忆</li>
+        <li><strong>上下文有限</strong>：单个会话能处理的内容有限</li>
+        <li><strong>复杂性</strong>：复杂项目无法在单个窗口内完成</li>
+    </ul>
+
+    <blockquote><strong>关键洞察</strong>：让Agent一次只处理一个功能，通过结构化记录实现跨会话连续性。</blockquote>
+
+    <h2>二、两阶段解决方案</h2>
+
+    <h3>2.1 初始化Agent</h3>
+    <p>设置初始环境，创建功能列表和进度追踪机制。</p>
+
+    <h3>2.2 编码Agent</h3>
+    <p>每个会话读取进度、选择功能、增量开发、记录进度。</p>
+
+    <h2>三、功能列表设计</h2>
+<pre><code>{
+  "id": "F001",
+  "category": "functional",
+  "priority": "high",
+  "description": "New chat button creates a fresh conversation",
+  "steps": ["Navigate to main interface", "Click the 'New Chat' button"],
+  "acceptance_criteria": ["Conversation list shows new entry"],
+  "passes": false
+}</code></pre>
+
+    <h2>四、实战案例</h2>
+
+    <div class="case-study">
+        <span class="case-tag">案例 1</span>
+        <h3>电商平台开发</h3>
+        <h4>场景</h4>
+        <p>使用长期运行Agent开发完整的电商平台，包含认证、产品目录、购物车等功能。</p>
+        <h4>功能列表</h4>
+<pre><code>F001: User registration and login (auth)
+F002: Product catalog display (functional)
+F003: Shopping cart functionality (functional)
+F004: Checkout flow (functional)
+F005: Order management (functional)</code></pre>
+        <h4>init.sh脚本</h4>
+<pre><code>#!/bin/bash
+npm install
+cp .env.example .env
+npm run db:migrate
+npm run db:seed
+npm run dev &
+npm run test:e2e:smoke</code></pre>
+        <h4>效果</h4>
+        <p>10个功能按计划完成，每个都有测试覆盖，代码可追溯。</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 2</span>
+        <h3>SaaS后台管理系统</h3>
+        <h4>场景</h4>
+        <p>开发多租户SaaS后台，需要处理租户隔离和用户管理。</p>
+        <h4>依赖管理</h4>
+<pre><code>F001: Multi-tenant authentication (无依赖)
+F002: Tenant isolation middleware (依赖F001)
+F003: User management (依赖F001, F002)
+F004: Admin dashboard (依赖F003)</code></pre>
+        <h4>效果</h4>
+        <p>依赖关系清晰，不会遗漏前置条件，实现顺序合理。</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 3</span>
+        <h3>移动App后端API</h3>
+        <h4>场景</h4>
+        <p>开发RESTful API服务，每个功能对应一组端点。</p>
+        <h4>功能设计</h4>
+<pre><code>API001: User endpoints (GET/POST/PUT/DELETE /users)
+API002: Authentication endpoints (/auth/*)
+API003: File upload endpoint (/upload, /files/:id)</code></pre>
+        <h4>API测试集成</h4>
+        <p>init.sh包含newman运行API测试，确保端点正常工作。</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 4</span>
+        <h3>数据迁移工具</h3>
+        <h4>场景</h4>
+        <p>开发数据库迁移工具，需要可恢复性。</p>
+        <h4>检查点设计</h4>
+<pre><code>{
+  "migration_id": "mig_001",
+  "progress": {
+    "total_records": 1000000,
+    "processed": 450000,
+    "last_id": "user_450000"
+  },
+  "status": "in_progress"
+}</code></pre>
+        <h4>效果</h4>
+        <p>迁移可恢复，进度可见，失败可追踪。</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 5</span>
+        <h3>AI聊天机器人</h3>
+        <h4>场景</h4>
+        <p>开发多功能AI聊天机器人，模块化设计。</p>
+        <h4>功能模块</h4>
+<pre><code>BOT001: Intent recognition (NLP)
+BOT002: Entity extraction (NLP)
+BOT003: Conversation state management (Dialogue)
+BOT004: Slack integration
+BOT005: Discord integration</code></pre>
+        <h4>跨会话一致性</h4>
+        <p>每个会话记录上下文（使用的技术、已完成的模块），确保新会话能正确接续。</p>
+    </div>
+
+    <h2>五、失败模式与解决方案</h2>
+    <table>
+        <tr><th>问题</th><th>解决方案</th></tr>
+        <tr><td>过早宣布胜利</td><td>设置严格的验收标准</td></tr>
+        <tr><td>环境遗留bug</td><td>init.sh自动清理和重置</td></tr>
+        <tr><td>进度未记录</td><td>强制每个会话更新进度文件</td></tr>
+        <tr><td>不知道如何运行</td><td>init.sh脚本自动化</td></tr>
+    </table>
+
+    <h2>六、最佳实践</h2>
+    <ol>
+        <li><strong>功能粒度</strong>：每个功能1-2个会话可完成</li>
+        <li><strong>可测试性</strong>：有明确的验收标准</li>
+        <li><strong>增量进度</strong>：每次只做一个功能</li>
+        <li><strong>结构化记录</strong>：跨会话记忆</li>
+    </ol>
+
+    <hr>
+    <p><a href="../index.html">← 返回目录</a></p>
+</body>
+</html>
