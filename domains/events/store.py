@@ -159,3 +159,24 @@ async def _ensure_current_month_partition(db, timestamp_str: str):
         FOR VALUES FROM ('{year}-{month:02d}-01') TO ('{end_year}-{end_month:02d}-01')
     """))
     logger.info("auto_created_partition", partition=partition_name)
+
+
+async def ensure_future_partitions():
+    """启动时预创建未来 3 个月分区（防止首次插入失败）"""
+    async with async_session() as db:
+        now = datetime.now(timezone.utc)
+        for offset in range(0, 4):  # 当月 + 未来 3 个月
+            m = now.month + offset
+            y = now.year
+            while m > 12:
+                m -= 12
+                y += 1
+            partition_name = f"events_{y}_{m:02d}"
+            end_m = m + 1 if m < 12 else 1
+            end_y = y if m < 12 else y + 1
+            await db.execute(text(f"""
+                CREATE TABLE IF NOT EXISTS {partition_name} PARTITION OF events
+                FOR VALUES FROM ('{y}-{m:02d}-01') TO ('{end_y}-{end_m:02d}-01')
+            """))
+        await db.commit()
+        logger.info("future_partitions_ensured")
