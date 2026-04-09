@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code最佳实践 - Anthropic AI方法论</title>
+    <style>
+        :root {
+            --bg-color: #0f0f0f; --text-color: #e0e0e0; --accent-color: #d97706; --accent-light: #f59e0b;
+            --card-bg: #1a1a1a; --border-color: #333; --code-bg: #252525; --link-color: #60a5fa;
+            --quote-bg: #1e293b; --case-bg: #1a2a1a; --case-border: #2d5a2d;
+        }
+        @media (prefers-color-scheme: light) {
+            :root { --bg-color: #f8fafc; --text-color: #1e293b; --card-bg: #ffffff; --border-color: #e2e8f0;
+                --code-bg: #f1f5f9; --link-color: #2563eb; --quote-bg: #fffbeb; --case-bg: #f0fdf4; --case-border: #86efac; }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-color); line-height: 1.7; font-size: 16px; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        h1 { font-size: 2.2rem; margin-bottom: 20px; color: var(--accent-light); border-bottom: 2px solid var(--accent-color); padding-bottom: 15px; }
+        h2 { font-size: 1.6rem; margin: 40px 0 20px; color: var(--accent-light); }
+        h3 { font-size: 1.3rem; margin: 25px 0 15px; }
+        h4 { font-size: 1.1rem; margin: 20px 0 10px; }
+        p { margin-bottom: 15px; }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        blockquote { background: var(--quote-bg); border-left: 4px solid var(--accent-color); padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        ul, ol { margin: 15px 0; padding-left: 25px; }
+        li { margin-bottom: 8px; }
+        code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Consolas, monospace; font-size: 0.9em; }
+        pre { background: var(--code-bg); padding: 20px; border-radius: 8px; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border-color); }
+        pre code { padding: 0; background: none; font-size: 0.85rem; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px 15px; text-align: left; border: 1px solid var(--border-color); }
+        th { background: var(--quote-bg); font-weight: 600; }
+        tr:nth-child(even) { background: var(--card-bg); }
+        .case-study { background: var(--case-bg); border: 2px solid var(--case-border); border-radius: 12px; padding: 25px; margin: 30px 0; }
+        .case-study h3 { color: #4ade80; margin-top: 0; }
+        .case-tag { display: inline-block; background: var(--accent-color); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 15px; }
+        .highlight { background: linear-gradient(135deg, var(--quote-bg), var(--card-bg)); border: 1px solid var(--accent-color); border-radius: 12px; padding: 20px; margin: 25px 0; }
+        .highlight strong { color: var(--accent-light); }
+        .nav-back { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; }
+        hr { border: none; border-top: 1px solid var(--border-color); margin: 40px 0; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="nav-back">← 返回目录</a>
+
+    <h1>Claude Code最佳实践</h1>
+
+    <div class="highlight">
+        <strong>来源：</strong> <a href="https://www.anthropic.com/engineering/claude-code-best-practices" target="_blank">https://www.anthropic.com/engineering/claude-code-best-practices</a><br>
+        <strong>发布日期：</strong> 2025-04-18
+    </div>
+
+    <h2>一、环境设置</h2>
+
+    <h3>1.1 CLAUDE.md文件</h3>
+    <p>CLAUDE.md是自动拉入上下文的特殊文件，Claude Code会在会话开始时自动读取它。</p>
+
+    <h4>放置位置</h4>
+    <table>
+        <tr><th>位置</th><th>适用场景</th></tr>
+        <tr><td>仓库根目录</td><td>最常用，适用于大多数项目</td></tr>
+        <tr><td>运行目录的父目录</td><td>Monorepo场景</td></tr>
+        <tr><td>~/.claude/CLAUDE.md</td><td>全局配置，适用所有会话</td></tr>
+    </table>
+
+    <h2>二、常用工作流</h2>
+
+    <h3>2.1 探索-计划-编码-提交</h3>
+    <pre><code>Step 1: 探索 - 读取相关文件，不写代码
+Step 2: 计划 - 制定方案，使用"think"
+Step 3: 编码 - 实现解决方案
+Step 4: 提交 - 创建commit，更新文档</code></pre>
+
+    <h3>2.2 具体化指令</h3>
+    <table>
+        <tr><th>糟糕</th><th>良好</th></tr>
+        <tr><td>add tests for foo.py</td><td>write a test case for foo.py covering the edge case where user is logged out</td></tr>
+        <tr><td>fix the bug</td><td>the login button doesn't work. investigate the click handler in Header.tsx</td></tr>
+    </table>
+
+    <h2>三、实战案例</h2>
+
+    <div class="case-study">
+        <span class="case-tag">案例 1</span>
+        <h3>CLAUDE.md配置模板</h3>
+        <h4>场景</h4>
+        <p>为一个Next.js电商项目创建CLAUDE.md，让Claude理解项目结构和规范。</p>
+        <h4>解决方案</h4>
+<pre><code># E-Commerce Platform
+
+## 常用命令
+npm run dev          # 启动开发服务器
+npm run test         # 运行测试
+npm run db:migrate   # 数据库迁移
+
+## 代码风格
+- 使用函数组件和hooks
+- 组件使用命名导出
+- 使用Zod进行数据验证
+
+## IMPORTANT规则
+1. 所有数据库操作必须使用Prisma
+2. 用户输入必须用Zod验证
+3. 不要直接操作process.env</code></pre>
+        <h4>效果</h4>
+        <p>Claude能快速理解项目，生成的代码符合规范，减少重复解释。</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 2</span>
+        <h3>自定义斜杠命令</h3>
+        <h4>场景</h4>
+        <p>创建常用的代码审查、PR创建、测试编写快捷命令。</p>
+        <h4>解决方案</h4>
+        <p>在<code>.claude/commands/</code>创建Markdown文件：</p>
+<pre><code># review.md
+请对当前代码变更进行全面的代码审查：
+- 代码质量（清晰度、命名、重复代码）
+- 功能正确性（需求满足、边缘情况）
+- 性能（循环、查询优化）
+- 安全（输入验证、XSS/SQL注入）
+- 测试（覆盖率、意义）</code></pre>
+        <h4>使用方式</h4>
+        <p><code>/review</code> - 执行代码审查<br><code>/pr</code> - 创建PR<br><code>/test</code> - 编写测试</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 3</span>
+        <h3>TDD工作流实践</h3>
+        <h4>场景</h4>
+        <p>实现购物车功能，确保功能正确性和测试覆盖率。</p>
+        <h4>工作流</h4>
+        <ol>
+            <li><strong>编写测试</strong>：让Claude基于需求编写测试用例</li>
+            <li><strong>运行测试</strong>：确认测试失败（红）</li>
+            <li><strong>编写实现</strong>：让Claude编写代码通过测试</li>
+            <li><strong>确认通过</strong>：所有测试变绿</li>
+            <li><strong>提交</strong>：创建有意义的commit</li>
+        </ol>
+        <h4>效果</h4>
+        <p>测试覆盖率高，代码质量有保证，回归测试方便。</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 4</span>
+        <h3>多Agent协作开发</h3>
+        <h4>场景</h4>
+        <p>大型重构任务涉及多个模块，单一会话可能上下文溢出。</p>
+        <h4>解决方案</h4>
+<pre><code># 创建多个worktree
+git worktree add ../project-auth refactor/auth
+git worktree add ../project-api refactor/api
+git worktree add ../project-ui refactor/ui
+
+# 不同终端启动Claude处理不同模块</code></pre>
+        <h4>效果</h4>
+        <p>重构时间缩短60%，每个模块专注度高，冲突最小化。</p>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 5</span>
+        <h3>视觉迭代开发</h3>
+        <h4>场景</h4>
+        <p>实现复杂UI组件，需要像素级还原设计稿。</p>
+        <h4>工作流</h4>
+        <ol>
+            <li><strong>提供设计稿</strong>：上传Figma截图</li>
+            <li><strong>Claude实现</strong>：创建初始版本</li>
+            <li><strong>截图对比</strong>：识别与设计稿的差异</li>
+            <li><strong>迭代修正</strong>：调整圆角、间距、颜色等</li>
+            <li><strong>主题验证</strong>：测试深色/浅色主题</li>
+            <li><strong>完成提交</strong>：确认后提交代码</li>
+        </ol>
+        <h4>效果</h4>
+        <p>UI还原度高，减少返工，开发效率提升。</p>
+    </div>
+
+    <h2>四、最佳实践总结</h2>
+
+    <h3>指令编写对比</h3>
+    <table>
+        <tr><th>糟糕</th><th>良好</th></tr>
+        <tr><td>模糊的指令</td><td>具体的指令（文件路径、行号）</td></tr>
+        <tr><td>缺少上下文</td><td>提供相关背景信息</td></tr>
+        <tr><td>没有约束</td><td>明确约束和边界</td></tr>
+    </table>
+
+    <h3>工作流选择</h3>
+    <table>
+        <tr><th>场景</th><th>推荐工作流</th></tr>
+        <tr><td>新功能开发</td><td>探索-计划-编码-提交</td></tr>
+        <tr><td>Bug修复</td><td>定位-测试-修复-验证</td></tr>
+        <tr><td>UI开发</td><td>视觉迭代</td></tr>
+        <tr><td>代码质量</td><td>TDD</td></tr>
+    </table>
+
+    <hr>
+    <p><a href="../index.html">← 返回目录</a></p>
+</body>
+</html>

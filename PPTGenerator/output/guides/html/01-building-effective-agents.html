@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>构建有效的AI Agent - Anthropic AI方法论</title>
+    <style>
+        :root {
+            --bg-color: #0f0f0f;
+            --text-color: #e0e0e0;
+            --accent-color: #d97706;
+            --accent-light: #f59e0b;
+            --card-bg: #1a1a1a;
+            --border-color: #333;
+            --code-bg: #252525;
+            --link-color: #60a5fa;
+            --quote-bg: #1e293b;
+            --case-bg: #1a2a1a;
+            --case-border: #2d5a2d;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f8fafc;
+                --text-color: #1e293b;
+                --card-bg: #ffffff;
+                --border-color: #e2e8f0;
+                --code-bg: #f1f5f9;
+                --link-color: #2563eb;
+                --quote-bg: #fffbeb;
+                --case-bg: #f0fdf4;
+                --case-border: #86efac;
+            }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            font-size: 16px;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 2.2rem; margin-bottom: 20px; color: var(--accent-light); border-bottom: 2px solid var(--accent-color); padding-bottom: 15px; }
+        h2 { font-size: 1.6rem; margin: 40px 0 20px; color: var(--accent-light); }
+        h3 { font-size: 1.3rem; margin: 25px 0 15px; }
+        h4 { font-size: 1.1rem; margin: 20px 0 10px; }
+        p { margin-bottom: 15px; }
+        a { color: var(--link-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        blockquote { background: var(--quote-bg); border-left: 4px solid var(--accent-color); padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        ul, ol { margin: 15px 0; padding-left: 25px; }
+        li { margin-bottom: 8px; }
+        code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Consolas, monospace; font-size: 0.9em; }
+        pre { background: var(--code-bg); padding: 20px; border-radius: 8px; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border-color); }
+        pre code { padding: 0; background: none; font-size: 0.85rem; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px 15px; text-align: left; border: 1px solid var(--border-color); }
+        th { background: var(--quote-bg); font-weight: 600; }
+        tr:nth-child(even) { background: var(--card-bg); }
+        .case-study { background: var(--case-bg); border: 2px solid var(--case-border); border-radius: 12px; padding: 25px; margin: 30px 0; }
+        .case-study h3 { color: #4ade80; margin-top: 0; }
+        .case-tag { display: inline-block; background: var(--accent-color); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 15px; }
+        .highlight { background: linear-gradient(135deg, var(--quote-bg), var(--card-bg)); border: 1px solid var(--accent-color); border-radius: 12px; padding: 20px; margin: 25px 0; }
+        .highlight strong { color: var(--accent-light); }
+        .nav-back { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; }
+        hr { border: none; border-top: 1px solid var(--border-color); margin: 40px 0; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="nav-back">← 返回目录</a>
+
+    <h1>构建有效的AI Agent</h1>
+
+    <div class="highlight">
+        <strong>来源：</strong> <a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank">https://www.anthropic.com/engineering/building-effective-agents</a><br>
+        <strong>发布日期：</strong> 2024-12-19
+    </div>
+
+    <h2>一、核心概念</h2>
+
+    <h3>1.1 Agentic Systems 分类</h3>
+    <table>
+        <tr><th>类型</th><th>定义</th><th>特点</th><th>适用场景</th></tr>
+        <tr><td><strong>Workflows</strong></td><td>LLM和工具通过预定义代码路径编排</td><td>可预测、一致性好、易调试</td><td>流程明确的任务</td></tr>
+        <tr><td><strong>Agents</strong></td><td>LLM动态指导自己的流程和工具使用</td><td>灵活、自主决策、适应性强</td><td>开放性问题</td></tr>
+    </table>
+
+    <h3>1.2 核心原则</h3>
+    <blockquote>
+        <strong>"寻找最简单的解决方案，只在需要时增加复杂度。"</strong>
+    </blockquote>
+
+    <h2>二、工作流模式详解</h2>
+
+    <h3>2.1 Prompt Chaining（提示链）</h3>
+    <p>将任务分解为步骤序列，每个LLM调用处理前一个的输出。</p>
+    <p><strong>优点：</strong>每步可独立测试、中间结果可检查、错误容易定位</p>
+
+    <h3>2.2 Routing（路由）</h3>
+    <p>分类输入并将其导向专门的后续任务。</p>
+    <p><strong>优点：</strong>每个分支可专门优化、可使用不同大小的模型</p>
+
+    <h3>2.3 Parallelization（并行化）</h3>
+    <p>LLMs同时处理任务，输出以编程方式聚合。</p>
+    <p><strong>变体：</strong>Sectioning（分解）和Voting（投票）</p>
+
+    <h3>2.4 Orchestrator-Workers（编排者-工作者）</h3>
+    <p>中央LLM动态分解任务，委托给worker LLMs，综合结果。</p>
+
+    <h3>2.5 Evaluator-Optimizer（评估者-优化者）</h3>
+    <p>一个LLM生成响应，另一个提供评估和反馈，形成循环。</p>
+
+    <h2>三、实战案例</h2>
+
+    <div class="case-study">
+        <span class="case-tag">案例 1</span>
+        <h3>客户服务路由系统</h3>
+        <h4>场景</h4>
+        <p>构建一个能处理不同类型客户咨询的系统。客户咨询类型多样（技术支持、账单问题、产品咨询），不同类型需要不同的处理流程。</p>
+
+        <h4>解决方案</h4>
+        <p>使用<strong>Routing模式</strong>，首先分类查询类型，然后路由到专门的处理流程。</p>
+
+        <h4>代码示例</h4>
+<pre><code>def customer_service_router(query):
+    # 第一步：分类
+    category = classify_query(query)  # technical/billing/product/general
+
+    # 第二步：路由到专门处理流程
+    handlers = {
+        "technical": technical_support_workflow,
+        "billing": billing_workflow,
+        "product": product_inquiry_workflow,
+        "general": general_assistant
+    }
+    return handlers[category](query)</code></pre>
+
+        <h4>关键设计点</h4>
+        <ul>
+            <li>分类器使用小模型（快速、低成本）</li>
+            <li>每个分支可使用不同大小/类型的模型</li>
+            <li>技术支持可能需要RAG检索知识库</li>
+        </ul>
+
+        <h4>效果</h4>
+        <ul>
+            <li>响应准确率提升 25%</li>
+            <li>平均处理时间降低 40%</li>
+        </ul>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 2</span>
+        <h3>内容创作流水线</h3>
+        <h4>场景</h4>
+        <p>自动化营销内容生成，需要经过多个阶段：主题确定→大纲→初稿→优化→翻译。每个阶段有明确的输入输出。</p>
+
+        <h4>解决方案</h4>
+        <p>使用<strong>Prompt Chaining模式</strong>，按顺序执行各阶段。</p>
+
+        <h4>代码示例</h4>
+<pre><code>class ContentPipeline:
+    def run(self, topic, target_languages):
+        context = {"topic": topic, "languages": target_languages}
+
+        steps = [
+            ("research", self.research_topic),
+            ("outline", self.create_outline),
+            ("draft", self.write_draft),
+            ("review", self.review_content),
+            ("optimize", self.optimize_for_seo),
+            ("translate", self.translate_versions)
+        ]
+
+        for step_name, step_func in steps:
+            context = step_func(context)
+            self.save_checkpoint(step_name, context)
+
+        return context["final_output"]</code></pre>
+
+        <h4>关键设计点</h4>
+        <ul>
+            <li>每步都有明确的输入输出格式</li>
+            <li>保存检查点便于恢复和调试</li>
+            <li>关键步骤设置人工审核点</li>
+        </ul>
+
+        <h4>效果</h4>
+        <ul>
+            <li>内容质量一致性提升 60%</li>
+            <li>创作效率提升 3倍</li>
+        </ul>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 3</span>
+        <h3>代码审查并行分析</h3>
+        <h4>场景</h4>
+        <p>对代码提交进行多维度审查：安全性、性能、风格、测试、文档。不同检查相互独立，可以并行。</p>
+
+        <h4>解决方案</h4>
+        <p>使用<strong>Parallelization模式</strong>，五个审查维度并行执行。</p>
+
+        <h4>代码示例</h4>
+<pre><code>class ParallelCodeReviewer:
+    async def review_code(self, code_diff):
+        reviewers = [
+            self.security_review,
+            self.performance_review,
+            self.style_review,
+            self.testing_review,
+            self.documentation_review
+        ]
+
+        # 并行执行所有审查
+        results = await asyncio.gather(*[
+            r(code_diff) for r in reviewers
+        ])
+
+        return self.aggregate_results(results)</code></pre>
+
+        <h4>关键设计点</h4>
+        <ul>
+            <li>五个审查维度完全独立</li>
+            <li>使用异步调用提高效率</li>
+            <li>聚合结果时考虑优先级</li>
+        </ul>
+
+        <h4>效果</h4>
+        <ul>
+            <li>审查时间从5分钟降到1分钟（5x提升）</li>
+            <li>问题覆盖率提升 40%</li>
+        </ul>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 4</span>
+        <h3>研究助手Agent</h3>
+        <h4>场景</h4>
+        <p>构建一个能自主完成研究任务的Agent。研究任务开放性高，无法预设固定步骤，需要根据发现动态调整方向。</p>
+
+        <h4>解决方案</h4>
+        <p>使用<strong>自主Agent模式</strong>，Agent自主规划并执行研究步骤。</p>
+
+        <h4>代码示例</h4>
+<pre><code>class ResearchAgent:
+    def research(self, question):
+        context = {"question": question, "findings": [], "sources": []}
+
+        while context["iteration"] < self.max_iterations:
+            # Agent决定下一步行动
+            action = self.plan_next_action(context)
+
+            if action["type"] == "complete":
+                return self.compile_report(context)
+
+            # 执行选定的工具
+            result = self.tools[action["tool"]](**action["params"])
+
+            # 更新上下文
+            context = self.update_context(context, action, result)
+
+        return self.compile_report(context)</code></pre>
+
+        <h4>关键设计点</h4>
+        <ul>
+            <li>明确的停止条件（最大迭代次数）</li>
+            <li>动态规划下一步行动</li>
+            <li>人机协作检查点</li>
+        </ul>
+
+        <h4>效果</h4>
+        <ul>
+            <li>能完成 80% 的初级研究任务</li>
+            <li>信息覆盖广度优于单一搜索</li>
+        </ul>
+    </div>
+
+    <div class="case-study">
+        <span class="case-tag">案例 5</span>
+        <h3>代码生成优化循环</h3>
+        <h4>场景</h4>
+        <p>生成高质量代码，初次生成可能有bug或性能问题，需要多轮审查和修改。</p>
+
+        <h4>解决方案</h4>
+        <p>使用<strong>Evaluator-Optimizer模式</strong>，通过迭代优化提升代码质量。</p>
+
+        <h4>代码示例</h4>
+<pre><code>class CodeOptimizer:
+    def generate_optimized_code(self, spec):
+        code = self.generate_initial_code(spec)
+
+        for i in range(self.max_iterations):
+            # 评估当前代码
+            evaluation = self.evaluate_code(code, spec)
+
+            if evaluation["passed"]:
+                return {"code": code, "iterations": i + 1}
+
+            # 基于反馈优化代码
+            code = self.optimize_code(code, evaluation["feedback"], spec)
+
+        return {"code": code, "warning": "未达到完全通过状态"}</code></pre>
+
+        <h4>关键设计点</h4>
+        <ul>
+            <li>明确的评估标准（5维度100分）</li>
+            <li>结构化的反馈传递</li>
+            <li>限制最大迭代次数</li>
+        </ul>
+
+        <h4>效果</h4>
+        <ul>
+            <li>代码通过率从 60% 提升到 90%</li>
+            <li>平均需要 2-3 次迭代达到标准</li>
+        </ul>
+    </div>
+
+    <h2>四、最佳实践</h2>
+
+    <h3>选择正确的模式</h3>
+    <table>
+        <tr><th>任务特征</th><th>推荐模式</th></tr>
+        <tr><td>固定步骤、明确流程</td><td>Prompt Chaining</td></tr>
+        <tr><td>不同类型需要不同处理</td><td>Routing</td></tr>
+        <tr><td>可分解为独立子任务</td><td>Parallelization</td></tr>
+        <tr><td>复杂度不可预测</td><td>Orchestrator-Workers</td></tr>
+        <tr><td>需要高质量输出</td><td>Evaluator-Optimizer</td></tr>
+        <tr><td>开放性、动态决策</td><td>自主Agent</td></tr>
+    </table>
+
+    <h3>设计原则</h3>
+    <ol>
+        <li><strong>简洁性优先</strong>：从最简单的方案开始</li>
+        <li><strong>透明性</strong>：让Agent的决策过程可见</li>
+        <li><strong>可测试性</strong>：每个组件可独立测试</li>
+        <li><strong>渐进增强</strong>：在证明需要时才增加复杂度</li>
+    </ol>
+
+    <h2>五、总结</h2>
+    <div class="highlight">
+        <strong>记住核心建议：</strong>"寻找最简单的解决方案，只在需要时增加复杂度。"
+    </div>
+
+    <hr>
+    <p><a href="../index.html">← 返回目录</a></p>
+</body>
+</html>

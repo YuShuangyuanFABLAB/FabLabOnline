@@ -1,0 +1,613 @@
+{
+  "project_name": "课程反馈PPT自动生成器",
+  "version": "1.0.0",
+  "last_updated": "2026-02-16",
+  "features": [
+    {
+      "id": "F001",
+      "category": "core",
+      "priority": "high",
+      "description": "项目基础框架搭建",
+      "details": "创建项目目录结构，安装依赖包，配置开发环境",
+      "steps": [
+        "创建项目目录结构（src/, config/, resources/, output/）",
+        "创建requirements.txt依赖文件",
+        "创建main.py入口文件",
+        "创建基础模块文件（__init__.py）"
+      ],
+      "tests": [
+        "python main.py --help 能够正常运行",
+        "所有模块能够正常import"
+      ],
+      "passes": true,
+      "blocked_by": []
+    },
+    {
+      "id": "F002",
+      "category": "core",
+      "priority": "high",
+      "description": "配置管理模块",
+      "details": "实现settings.json和colors.json的读写功能，支持用户偏好记忆",
+      "steps": [
+        "创建ConfigManager类",
+        "实现配置文件的读取、保存、默认值处理",
+        "实现常用数据列表管理（学生、教师、课程）",
+        "实现母版选择记忆功能"
+      ],
+      "tests": [
+        "能够创建默认配置文件",
+        "能够读取和保存配置",
+        "配置变更后能正确持久化"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F001"
+      ]
+    },
+    {
+      "id": "F003",
+      "category": "core",
+      "priority": "high",
+      "description": "数据模型定义",
+      "details": "定义CourseUnitData、LayoutConfig等数据类，以及枚举类型",
+      "steps": [
+        "定义EvaluationLevel枚举",
+        "定义OverallEvaluation枚举",
+        "定义HomeworkEvaluation枚举",
+        "定义CourseUnitData数据类",
+        "定义LayoutConfig数据类",
+        "定义ImageData数据类"
+      ],
+      "tests": [
+        "所有枚举能够正常使用",
+        "数据类能够正常实例化和序列化"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F001"
+      ]
+    },
+    {
+      "id": "F004",
+      "category": "ppt",
+      "priority": "high",
+      "description": "PPT模板读取与母版管理",
+      "details": "实现PPT模板加载，母版布局识别和管理功能",
+      "steps": [
+        "创建PPTGenerator核心类",
+        "实现模板加载功能",
+        "实现母版布局识别",
+        "实现LayoutManager类管理母版选择"
+      ],
+      "tests": [
+        "能够加载模板PPT文件",
+        "能够正确识别所有7种母版布局",
+        "能够根据配置选择正确的母版"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F003"
+      ]
+    },
+    {
+      "id": "F005",
+      "category": "ppt",
+      "priority": "high",
+      "description": "课程信息页内容填充",
+      "details": "实现课程信息页的文本替换和内容填充功能",
+      "steps": [
+        "实现基本信息区域填充（课时编号、课程内容、学生姓名等）",
+        "实现课时信息填充（课时数、上课日期）",
+        "实现文本框定位和替换逻辑",
+        "处理组合形状内的文本替换"
+      ],
+      "tests": [
+        "能够正确替换课时编号",
+        "能够正确替换学生姓名和授课教师",
+        "能够正确替换上课日期和课时数",
+        "组合形状内的文本能够正确替换"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F004"
+      ]
+    },
+    {
+      "id": "F006",
+      "category": "ppt",
+      "priority": "high",
+      "description": "重点/难点文本标记",
+      "details": "实现课程内容中文本的蓝色(重点#0070C0)和橙色(难点#ED7D31)标记功能",
+      "steps": [
+        "创建TextFormatter类",
+        "实现文本分割算法（根据重点/难点列表）",
+        "实现Run级别的颜色设置",
+        "处理多段落文本标记"
+      ],
+      "tests": [
+        "能够正确标记单个重点文本为蓝色",
+        "能够正确标记单个难点文本为橙色",
+        "能够处理多个重点和难点",
+        "能够处理重叠或相邻的标记"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F005"
+      ]
+    },
+    {
+      "id": "F007",
+      "category": "ppt",
+      "priority": "high",
+      "description": "评价复选框处理",
+      "details": "实现评价选项的选中状态切换（□未选中 / ☑选中）",
+      "steps": [
+        "实现评价文本解析",
+        "实现复选框字符替换（□ ↔ ☑）",
+        "实现12项评价的处理",
+        "实现总体评价和上次作业评价的处理"
+      ],
+      "tests": [
+        "能够将优/良/中/差/未体现的复选框正确切换",
+        "总体评价能够正确处理4个选项",
+        "上次作业情况能够正确处理5个选项"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F005"
+      ]
+    },
+    {
+      "id": "F008",
+      "category": "ppt",
+      "priority": "high",
+      "description": "区域对齐纵向分布",
+      "details": "实现课程信息页各区域（区域1-7）的对齐和纵向均匀分布",
+      "steps": [
+        "分析各区域的边界框",
+        "计算内容高度和可用空间",
+        "实现动态位置调整算法",
+        "处理不同内容长度的情况"
+      ],
+      "tests": [
+        "短内容时各区域能够均匀分布",
+        "长内容时不会出现重叠",
+        "各区域保持左对齐"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F005",
+        "F006",
+        "F007"
+      ]
+    },
+    {
+      "id": "F009",
+      "category": "image",
+      "priority": "high",
+      "description": "图片处理核心功能",
+      "details": "实现图片的加载、裁剪、缩放功能",
+      "steps": [
+        "创建ImageProcessor类",
+        "实现图片加载（支持JPG、PNG、BMP、GIF）",
+        "实现按比例缩放",
+        "实现居中裁剪算法"
+      ],
+      "tests": [
+        "能够加载各种格式的图片",
+        "缩放后保持宽高比",
+        "裁剪后尺寸正确"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F001"
+      ]
+    },
+    {
+      "id": "F010",
+      "category": "ppt",
+      "priority": "high",
+      "description": "图片嵌入PPT",
+      "details": "实现将处理后的图片嵌入到PPT指定位置",
+      "steps": [
+        "实现图片占位符定位",
+        "实现图片插入到slide",
+        "实现不同母版的图片位置适配",
+        "图片作为嵌入资源保存"
+      ],
+      "tests": [
+        "图片能够插入到正确位置",
+        "图片尺寸符合目标区域",
+        "保存的PPT中图片能够正常显示"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F004",
+        "F009"
+      ]
+    },
+    {
+      "id": "F011",
+      "category": "ppt",
+      "priority": "medium",
+      "description": "添加新页面功能",
+      "details": "实现在PPT末尾添加新页面的功能，支持不同母版组合",
+      "steps": [
+        "实现基于母版添加新slide",
+        "实现多页添加（模型展示页可多页）",
+        "实现页面顺序控制"
+      ],
+      "tests": [
+        "能够添加课程信息页",
+        "能够添加多个模型展示页",
+        "能够添加作品页",
+        "页面顺序正确"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F005",
+        "F010"
+      ]
+    },
+    {
+      "id": "F012",
+      "category": "ppt",
+      "priority": "high",
+      "description": "PPT保存功能",
+      "details": "实现生成PPT的保存功能，支持自定义文件名",
+      "steps": [
+        "实现PPT保存到指定路径",
+        "实现自动文件名生成（基于学生姓名和日期）",
+        "处理文件已存在的情况"
+      ],
+      "tests": [
+        "能够保存到指定路径",
+        "自动生成的文件名格式正确",
+        "覆盖保存功能正常"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F011"
+      ]
+    },
+    {
+      "id": "F013",
+      "category": "ui",
+      "priority": "high",
+      "description": "PyQt5主窗口框架",
+      "details": "创建主窗口UI框架，包含菜单栏、工具栏、状态栏",
+      "steps": [
+        "创建MainWindow类",
+        "实现菜单栏（文件、编辑、导入、导出、帮助）",
+        "实现状态栏",
+        "实现窗口大小和位置记忆"
+      ],
+      "tests": [
+        "窗口能够正常显示",
+        "菜单栏功能正常",
+        "窗口关闭时能够记住位置"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F002"
+      ]
+    },
+    {
+      "id": "F014",
+      "category": "ui",
+      "priority": "high",
+      "description": "母版选择组件",
+      "details": "创建母版选择UI组件，支持勾选和记忆",
+      "steps": [
+        "创建LayoutSelectorWidget组件",
+        "实现7种母版的复选框",
+        "实现模型展示页数量选择",
+        "实现恢复默认按钮"
+      ],
+      "tests": [
+        "所有母版能够正确显示",
+        "勾选状态能够保存和恢复",
+        "恢复默认功能正常"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F013"
+      ]
+    },
+    {
+      "id": "F015",
+      "category": "ui",
+      "priority": "high",
+      "description": "课程信息输入组件",
+      "details": "创建课程信息输入UI组件，包含所有文本输入字段",
+      "steps": [
+        "创建CourseInfoWidget组件",
+        "实现基本信息输入（带下拉联想）",
+        "实现日期时间选择器",
+        "实现课时数输入"
+      ],
+      "tests": [
+        "所有字段能够正常输入",
+        "下拉联想功能正常",
+        "日期选择器功能正常"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F013"
+      ]
+    },
+    {
+      "id": "F016",
+      "category": "ui",
+      "priority": "high",
+      "description": "富文本编辑器组件",
+      "details": "创建支持重点/难点标记的富文本编辑器",
+      "steps": [
+        "创建RichTextEditor组件",
+        "实现文本输入",
+        "实现选中文字标记为重点（蓝色）",
+        "实现选中文字标记为难点（橙色）",
+        "实现清除标记功能"
+      ],
+      "tests": [
+        "文本输入功能正常",
+        "能够选中文字并标记",
+        "标记颜色正确",
+        "清除标记功能正常"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F015"
+      ]
+    },
+    {
+      "id": "F017",
+      "category": "ui",
+      "priority": "high",
+      "description": "评价选择组件",
+      "details": "创建12项评价和总体评价的UI组件",
+      "steps": [
+        "创建EvaluationWidget组件",
+        "实现12项评价的单选按钮组",
+        "实现总体评价选择",
+        "实现上次作业情况选择",
+        "实现补充说明文本框"
+      ],
+      "tests": [
+        "所有评价项目能够正常选择",
+        "单选功能正常（每项只能选一个）",
+        "补充说明能够正常输入"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F013"
+      ]
+    },
+    {
+      "id": "F018",
+      "category": "ui",
+      "priority": "high",
+      "description": "图片上传组件",
+      "details": "创建图片上传UI组件，支持拖拽和选择文件",
+      "steps": [
+        "创建ImageUploadWidget组件",
+        "实现拖拽上传",
+        "实现点击选择文件",
+        "实现图片预览",
+        "实现图片删除功能"
+      ],
+      "tests": [
+        "拖拽上传功能正常",
+        "点击选择文件功能正常",
+        "图片预览显示正确",
+        "删除功能正常"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F013"
+      ]
+    },
+    {
+      "id": "F019",
+      "category": "ui",
+      "priority": "medium",
+      "description": "图片裁剪对话框",
+      "details": "创建图片手动裁剪对话框",
+      "steps": [
+        "创建CropDialog对话框",
+        "实现裁剪框拖动",
+        "实现裁剪预览",
+        "实现旋转功能",
+        "应用裁剪结果"
+      ],
+      "tests": [
+        "裁剪框能够拖动调整",
+        "预览显示正确",
+        "旋转功能正常",
+        "裁剪结果正确应用"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F018"
+      ]
+    },
+    {
+      "id": "F020",
+      "category": "import",
+      "priority": "medium",
+      "description": "Excel导入模板设计",
+      "details": "设计Excel导入文件的标准格式和模板",
+      "steps": [
+        "设计列名和数据格式",
+        "创建Excel模板文件",
+        "编写格式说明文档"
+      ],
+      "tests": [
+        "模板文件格式正确",
+        "文档说明清晰"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F003"
+      ]
+    },
+    {
+      "id": "F021",
+      "category": "import",
+      "priority": "medium",
+      "description": "Excel读取功能",
+      "details": "实现Excel文件的读取和数据解析",
+      "steps": [
+        "创建ExcelImporter类",
+        "实现文件读取",
+        "实现数据验证",
+        "实现错误提示"
+      ],
+      "tests": [
+        "能够读取正确格式的Excel",
+        "能够检测格式错误",
+        "能够处理空值"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F020"
+      ]
+    },
+    {
+      "id": "F022",
+      "category": "ui",
+      "priority": "medium",
+      "description": "Excel导入对话框",
+      "details": "创建Excel导入对话框，支持预览和行选择",
+      "steps": [
+        "创建ExcelImportDialog对话框",
+        "实现文件选择",
+        "实现数据预览表格",
+        "实现行选择功能",
+        "实现导入按钮"
+      ],
+      "tests": [
+        "文件选择功能正常",
+        "预览显示正确",
+        "能够选择要导入的行",
+        "导入功能正常"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F021"
+      ]
+    },
+    {
+      "id": "F023",
+      "category": "import",
+      "priority": "low",
+      "description": "表单保存/加载功能",
+      "details": "实现表单数据的保存和加载功能",
+      "steps": [
+        "实现表单数据序列化",
+        "实现保存到文件",
+        "实现从文件加载",
+        "实现最近表单列表"
+      ],
+      "tests": [
+        "能够保存表单到文件",
+        "能够从文件加载表单",
+        "最近表单列表显示正确"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F015",
+        "F016",
+        "F017"
+      ]
+    },
+    {
+      "id": "F024",
+      "category": "ui",
+      "priority": "medium",
+      "description": "PPT预览功能",
+      "details": "实现生成PPT前的预览功能",
+      "steps": [
+        "实现PPT页面截图",
+        "实现预览对话框",
+        "实现页面切换"
+      ],
+      "tests": [
+        "预览图片能够正确生成",
+        "页面切换功能正常"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F012"
+      ]
+    },
+    {
+      "id": "F025",
+      "category": "core",
+      "priority": "medium",
+      "description": "批量生成功能",
+      "details": "支持批量生成多个课程反馈PPT",
+      "steps": [
+        "实现批量任务队列",
+        "实现进度显示",
+        "实现错误处理和继续"
+      ],
+      "tests": [
+        "能够批量处理多个课程",
+        "进度显示正确",
+        "单个失败不影响其他"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F012",
+        "F022"
+      ]
+    },
+    {
+      "id": "F026",
+      "category": "core",
+      "priority": "high",
+      "description": "完整功能集成测试",
+      "details": "进行端到端的功能测试，确保所有模块正常协作",
+      "steps": [
+        "手动输入模式完整测试",
+        "Excel导入模式完整测试",
+        "图片处理完整测试",
+        "多单元生成测试"
+      ],
+      "tests": [
+        "手动输入模式生成PPT正确",
+        "Excel导入模式批量生成正确",
+        "图片正确嵌入PPT",
+        "多单元PPT结构正确"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F012",
+        "F025"
+      ]
+    },
+    {
+      "id": "F027",
+      "category": "build",
+      "priority": "low",
+      "description": "打包发布",
+      "details": "使用PyInstaller打包为可执行文件",
+      "steps": [
+        "配置PyInstaller",
+        "添加资源文件",
+        "创建安装程序",
+        "测试安装包"
+      ],
+      "tests": [
+        "exe文件能够正常运行",
+        "资源文件正确包含",
+        "安装程序正常"
+      ],
+      "passes": true,
+      "blocked_by": [
+        "F026"
+      ]
+    }
+  ]
+}

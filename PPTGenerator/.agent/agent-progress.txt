@@ -1,0 +1,147 @@
+# 课程反馈PPT自动生成器 - 开发进度日志
+
+## 项目信息
+- 项目名称: 课程反馈PPT自动生成器
+- 开始日期: 2026-02-16
+- 完成日期: 2026-02-16
+- 当前阶段: 核心功能完成，记忆系统已部署
+
+## 功能完成统计
+- 总功能数: 27
+- 已完成: 27
+- 进行中: 0
+- 待开始: 0
+- 完成率: 100%
+
+## 已完成功能列表
+
+### 核心框架 (F001-F004)
+- [x] F001: 项目基础框架搭建
+- [x] F002: 配置管理模块
+- [x] F003: 数据模型定义
+- [x] F004: PPT模板读取与母版管理
+
+### PPT功能 (F005-F012)
+- [x] F005: 课程信息页内容填充
+- [x] F006: 重点/难点文本标记
+- [x] F007: 评价复选框处理
+- [x] F008: 区域对齐纵向分布
+- [x] F009: 图片处理核心功能
+- [x] F010: 图片嵌入PPT
+- [x] F011: 添加新页面功能
+- [x] F012: PPT保存功能
+
+### UI框架 (F013-F019)
+- [x] F013: PyQt5主窗口框架
+- [x] F014: 母版选择组件
+- [x] F015: 课程信息输入组件
+- [x] F016: 富文本编辑器组件
+- [x] F017: 评价选择组件
+- [x] F018: 图片上传组件
+- [x] F019: 图片裁剪对话框
+
+### 数据导入 (F020-F023)
+- [x] F020: Excel导入模板设计
+- [x] F021: Excel读取功能
+- [x] F022: Excel导入对话框
+- [x] F023: 表单保存/加载功能
+
+### 高级功能 (F024-F027)
+- [x] F024: PPT预览功能
+- [x] F025: 批量生成功能
+- [x] F026: 完整功能集成测试
+- [x] F027: 打包发布
+
+## 项目结构
+
+```
+D:/claude code/
+├── main.py                    # 主入口
+├── build.py                   # 打包脚本
+├── test_all.py                # 自动化测试
+├── requirements.txt           # 依赖列表
+├── src/
+│   ├── core/                  # 核心功能
+│   │   ├── models.py          # 数据模型
+│   │   ├── config_manager.py  # 配置管理
+│   │   ├── ppt_generator.py   # PPT生成器
+│   │   ├── checkbox_handler.py# 复选框处理
+│   │   ├── content_filler.py  # 内容填充
+│   │   ├── excel_importer.py  # Excel导入
+│   │   ├── batch_generator.py # 批量生成
+│   │   └── form_serializer.py # 表单序列化
+│   └── ui/                    # 界面组件
+│       ├── main_window.py     # 主窗口
+│       ├── widgets/           # UI组件
+│       │   ├── layout_selector.py
+│       │   ├── course_info.py
+│       │   ├── evaluation.py
+│       │   ├── image_upload.py
+│       │   └── rich_text_editor.py
+│       └── dialogs/           # 对话框
+│           ├── excel_import_dialog.py
+│           ├── batch_progress_dialog.py
+│           ├── ppt_preview_dialog.py
+│           └── crop_dialog.py
+├── templates/                 # PPT模板
+├── config/                    # 配置文件
+└── output/                    # 输出目录
+```
+
+## 运行方式
+
+### 启动程序
+```bash
+cd "D:/claude code"
+python main.py
+```
+
+### 运行测试
+```bash
+python test_all.py
+```
+
+### 打包发布
+```bash
+python build.py
+```
+
+## 依赖库
+- PyQt5 >= 5.15.0
+- python-pptx >= 0.6.21
+- Pillow >= 9.0.0
+- openpyxl >= 3.0.0
+
+---
+
+## 2026-02-21 记忆系统部署
+
+### 完成的工作
+- [x] 创建 .memory 目录结构
+- [x] 部署 TELOS 系统 (MISSION/GOALS/PROJECTS/LEARNED/CHALLENGES/IDEAS)
+- [x] 创建三层记忆文件 (P0/P1/P2)
+- [x] 创建维护脚本 (health_check.py / archive_manager.py)
+- [x] 创建会话启动指南 (SESSION_START.md)
+- [x] 更新 AI开发系统指南.md 集成记忆系统
+
+### 记忆系统架构
+```
+.memory/
+├── SESSION_START.md        # 会话启动指南
+├── MEMORY_P0.md            # 热记忆（工作记忆）
+├── MEMORY_P1.md            # 温记忆（经验教训）
+├── P2/                     # 冷记忆（历史归档）
+├── telos/                  # TELOS 身份定义系统
+└── maintenance/            # 维护脚本
+```
+
+### 参考
+- 微信文章: https://mp.weixin.qq.com/s/PpV4Ff_dSgveXqTJpnmpjg
+- GitHub: https://github.com/danielmiessler/Personal_AI_Infrastructure
+
+### 下一步
+- [ ] 课堂表现补充说明灰色边框位置调整
+- [ ] 验证记忆系统在实际开发中的效果
+
+---
+项目核心功能开发完成，记忆系统已部署!
