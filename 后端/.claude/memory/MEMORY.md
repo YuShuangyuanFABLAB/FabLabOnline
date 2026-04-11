@@ -9,12 +9,40 @@
 - [项目状态与上下文](platform-project-context.md) — 当前阶段、v1.4 改进、下一步行动
 - [设计文档 v1.1](../docs/superpowers/specs/2026-04-03-platform-foundation-design.md) — 5轮AI评审后冻结
 - [实现计划 v1.4](../docs/superpowers/plans/2026-04-03-phase1-implementation.md) — 8 Task, 7轮评审38项修正
-- [会话记录 01](../docs/sessions/2026-04-03-session-01-design-review.md) — 设计评审全记录
-- [会话记录 02](../docs/sessions/2026-04-03-session-02-plan-review.md) — 计划评审修正（Claude Code + ChatGPT）
+- [代码审计报告](../docs/superpowers/audits/2026-04-11-code-audit.md) — 21 项发现，Phase 1+2 已修复
+- [Session 01](../docs/sessions/2026-04-03-session-01-design-review.md) — 设计评审全记录
+- [Session 02](../docs/sessions/2026-04-03-session-02-plan-review.md) — 计划评审修正
+- [Session 03](../docs/sessions/2026-04-11-session-03-code-audit.md) — UI 重设计 + Docker 修复 + 代码审计
+- [Session 04](../docs/sessions/2026-04-12-session-04-phase2-security.md) — Phase 2 安全修复
 
 ## 技术栈
 
 FastAPI + PostgreSQL 15 + Redis 7 + Vue 3 + Element Plus + PyQt5 + Docker Compose
+
+## 开发历程
+
+### Phase 1 开发（2026-04-03 ~ 04-09）
+8 个 Task 全部完成（105+4+16+13=138 tests），v1.0.0 发布
+
+### Phase 1 安全加固（2026-04-12 Session 03→04 前半）
+- C1: Token → HttpOnly Cookie
+- C2: SHA-256 → PBKDF2-SHA256 480000 次
+- C3: 登录限流 5 次/15分钟
+- H5: CORS 配置
+- 后端 124 + 前端 5 = 129 tests
+
+### Phase 2 安全修复（2026-04-12 Session 04）
+- H4: 登录和心跳返回真实角色（调用 get_user_roles）
+- H2: 审计日志全覆盖（config/apps 补全 + ip_address/user_agent）
+- H3: init_db 检查 alembic_version fallback + Dockerfile 加入 alembic
+- 后端 134 + 前端 5 = 139 tests
+
+### Phase 3 待执行（MEDIUM）
+- M5: tenant_id 重复声明
+- M6: 禁止删除系统角色
+- M7: shutdown 事件处理
+- M8: Pydantic 请求校验
+- M4: 前端 API 模块封装
 
 ## 评审历史
 

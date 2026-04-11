@@ -9,7 +9,7 @@
 
 ## 一、严重问题（CRITICAL）— 必须立即修复
 
-### C1. Token 存储在 localStorage — XSS 可窃取 JWT
+### C1. Token 存储在 localStorage — XSS 可窃取 JWT ✅ 已修复（Phase 1）
 
 **文档要求**（任务6 步骤2）：HttpOnly Cookie 模式。后端通过 `Set-Cookie: httpOnly + Secure + SameSite=Strict` 设置 token。前端用 `withCredentials: true`。**Token 绝不接触 JavaScript**。
 
@@ -30,7 +30,7 @@
 
 ---
 
-### C2. 密码使用 SHA-256 无盐哈希 — 可被暴力破解
+### C2. 密码使用 SHA-256 无盐哈希 — 可被暴力破解 ✅ 已修复（Phase 1）
 
 **实际代码**：
 - `后端/init_db.py:79` — `hashlib.sha256("admin123".encode()).hexdigest()`
@@ -47,7 +47,7 @@
 
 ---
 
-### C3. 密码登录端点无生产环境保护
+### C3. 密码登录端点无生产环境保护 ✅ 已修复（Phase 1）
 
 **文档要求**：认证仅通过微信扫码 OAuth。密码登录是开发模式额外添加。
 
@@ -65,7 +65,7 @@
 
 ## 二、高危问题（HIGH）— 1-2 周内修复
 
-### H1. 用户信息未持久化 — 刷新后丢失
+### H1. 用户信息未持久化 — 刷新后丢失 ✅ 已修复（Phase 1 — Cookie + heartbeat 路由守卫）
 
 **实际代码**：`stores/auth.ts` 是 Pinia 内存 store，页面刷新后 `user` 变为 null。
 
@@ -83,7 +83,7 @@
 
 ---
 
-### H2. 审计日志未接入 — 写操作无记录
+### H2. 审计日志未接入 — 写操作无记录 ✅ 已修复（Phase 2 — config/apps 补全 + ip_address/user_agent）
 
 **文档要求**（任务4 步骤5）：所有写操作记录到 `audit_logs` 表，包含 tenant_id、user_id、action、resource_type、ip_address 等。
 
@@ -95,7 +95,7 @@
 
 ---
 
-### H3. init_db.py 每次容器启动都运行 DDL
+### H3. init_db.py 每次容器启动都运行 DDL ✅ 已修复（Phase 2 — Alembic + alembic_version fallback）
 
 **实际代码**：`Dockerfile` 的 CMD 是 `python init_db.py && uvicorn main:app ...`
 
@@ -109,7 +109,7 @@
 
 ---
 
-### H4. RBAC 硬编码角色 — auth.py 返回假角色
+### H4. RBAC 硬编码角色 — auth.py 返回假角色 ✅ 已修复（Phase 2 — 调用 get_user_roles 查真实角色）
 
 **实际代码**：`后端/api/v1/auth.py:72` — `"roles": ["super_admin"]` 硬编码。
 
@@ -121,7 +121,7 @@
 
 ---
 
-### H5. 没有 CORS 配置
+### H5. 没有 CORS 配置 ✅ 已修复（Phase 1 — CORSMiddleware）
 
 **实际代码**：FastAPI 未添加 CORSMiddleware。
 
@@ -135,7 +135,7 @@
 
 ## 三、中等问题（MEDIUM）— 下个迭代修复
 
-### M1. 缺少 Alembic 数据库迁移
+### M1. 缺少 Alembic 数据库迁移 ✅ 已部分修复（Phase 2 — env.py + 2 个迁移已存在）
 
 **文档要求**：`migrations/` 目录 + `alembic.ini`。
 
@@ -225,28 +225,28 @@
 
 | 要求 | 文档位置 | 状态 | 备注 |
 |------|---------|------|------|
-| HttpOnly Cookie Token | 任务6 步骤2 | **未实现** | 使用 localStorage（C1） |
+| HttpOnly Cookie Token | 任务6 步骤2 | ✅ 已实现 | Phase 1 修复（C1） |
 | 微信扫码 OAuth | 任务3 | 已实现 | 额外添加了密码登录 |
 | JWT HS256 7天过期 | 任务3 | 已实现 | |
 | RBAC 拒绝默认 | 任务4 | 已实现 | policy.py 正确 |
 | Redis 权限缓存 5min TTL | 任务4 | 已实现 | |
-| 审计日志记录 | 任务4 步骤5 | **未实现** | audit.py 存在但未调用（H2） |
+| 审计日志记录 | 任务4 步骤5 | ✅ 已实现 | Phase 2 修复（H2），所有写操作已接入 |
 | 多租户隔离 TenantModel | 任务2 | 已实现 | |
-| events 分区表 | 任务2 | 已实现 | 缺初始分区（M2） |
+| events 分区表 | 任务2 | 已实现 | startup 自动创建分区 |
 | Prometheus 指标 | 任务7 | 已实现 | |
-| Alembic 迁移 | 文件结构 | **未实现** | （M1） |
+| Alembic 迁移 | 文件结构 | ✅ 已实现 | Phase 2 修复（M1/H3），env.py + 2 迁移 |
 | Docker Compose 5服务 | 任务10 | 已实现 | |
 | nginx 限流 | 任务10 | 已实现 | |
 | 健康检查 /health /ready | 任务1 | 已实现 | |
 | SDK Python 客户端 | 任务7 | 已实现 | 在 sdk/ 目录 |
-| 前端角色菜单过滤 | 任务6 | 已实现 | |
+| 前端角色菜单过滤 | 任务6 | ✅ 已实现 | Phase 2 修复（H4），返回真实角色 |
 | 前端暗色模式 | 无 | 已实现 | 超出文档要求 |
 
 ---
 
 ## 六、修复优先级与执行计划
 
-### Phase 1：安全加固（优先级最高）
+### Phase 1：安全加固 ✅ 已完成（2026-04-12）
 | # | 任务 | 级别 | 文件 |
 |---|------|------|------|
 | 1 | C1: Token 迁移到 HttpOnly Cookie | CRITICAL | auth.py, client.ts, LoginView.vue, router/index.ts |
@@ -254,7 +254,7 @@
 | 3 | C3: 密码登录添加限流/环境保护 | CRITICAL | auth.py, middleware.py |
 | 4 | H5: 添加 CORS 配置 | HIGH | main.py |
 
-### Phase 2：数据完整性（优先级高）
+### Phase 2：数据完整性 ✅ 已完成（2026-04-12）
 | # | 任务 | 级别 | 文件 |
 |---|------|------|------|
 | 5 | H1: 用户信息刷新恢复 | HIGH | router/index.ts, stores/auth.ts |
@@ -262,22 +262,22 @@
 | 7 | H4: 登录返回真实角色 | HIGH | auth.py |
 | 8 | H3: init_db.py 仅做种子数据 | HIGH | init_db.py, Dockerfile |
 
-### Phase 3：工程质量（优先级中）
-| # | 任务 | 级别 | 文件 |
+### Phase 3：工程质量 — 待执行
+| # | 任务 | 级别 | 状态 |
 |---|------|------|------|
-| 9 | M1: 添加 Alembic 迁移框架 | MEDIUM | 新增 alembic.ini + migrations/ |
-| 10 | M2: 事件表初始分区 | MEDIUM | init_db.py |
-| 11 | M5: 消除 tenant_id 重复声明 | MEDIUM | campus.py, user.py |
-| 12 | M6: 禁止删除系统角色 | MEDIUM | roles.py |
-| 13 | M7: 添加 shutdown 事件处理 | MEDIUM | main.py |
-| 14 | M4: 前端缺失 API 模块封装 | MEDIUM | 新增 audit.ts, apps.ts, config.ts |
+| 9 | M1: 添加 Alembic 迁移框架 | MEDIUM | ✅ 已有 env.py + 2 迁移 |
+| 10 | M2: 事件表初始分区 | MEDIUM | 已由 ensure_future_partitions 处理 |
+| 11 | M5: 消除 tenant_id 重复声明 | MEDIUM | 待执行 |
+| 12 | M6: 禁止删除系统角色 | MEDIUM | 待执行 |
+| 13 | M7: 添加 shutdown 事件处理 | MEDIUM | 待执行 |
+| 14 | M4: 前端缺失 API 模块封装 | MEDIUM | 待执行 |
 
 ---
 
 ## 七、验证方式
 
-1. 修复后运行 `python -m pytest -v` 确认后端测试通过
-2. 运行 `npm run build` + `npx vitest run` 确认前端通过
-3. Docker 重新构建验证部署正常
-4. 手动验证：登录 → Cookie 中有 token → localStorage 无 token → 刷新页面仍正常
-5. 手动验证：操作用户/校区后检查 audit_logs 表有记录
+1. ✅ 后端 `python -m pytest -v` — 134 passed（Phase 2）
+2. ✅ 前端 `npx vitest run` — 5 passed
+3. ✅ Docker 5 容器健康（Phase 1 验证）
+4. ✅ 手动验证：登录 → Cookie 中有 token → localStorage 无 token → 刷新页面仍正常
+5. ⬜ 手动验证：非 super_admin 用户菜单过滤正确（需创建测试用户）
