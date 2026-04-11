@@ -1,0 +1,56 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Node
+node_modules/
+dist-ssr/
+*.local
+*.tsbuildinfo
+.eslintcache
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+desktop.ini
+Thumbs.db
+
+# Claude Code
+.claude/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Docker
+*.tar
+
+# Test artifacts
+coverage/
+__screenshots__/
+cypress/videos/
+cypress/screenshots/
+
+# Vite
+*.timestamp-*-*.mjs

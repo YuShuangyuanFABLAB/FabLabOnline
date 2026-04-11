@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from config.settings import settings
@@ -10,6 +11,18 @@ from api.v1.router import router as v1_router
 setup_logging(debug=settings.DEBUG)
 
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
+
+# CORS — 限制允许的源（Docker 部署通过 nginx 同源，这里为本地开发和 API 开放做准备）
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.DEBUG
+        if isinstance(settings.DEBUG, list)
+        else ["http://localhost", "http://localhost:5173", "http://localhost:80"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.add_middleware(AuthMiddleware)
 app.include_router(v1_router)
 

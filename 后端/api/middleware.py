@@ -16,6 +16,7 @@ EXEMPT_PATHS = (
     "/redoc",
     "/api/v1/auth/qrcode",
     "/api/v1/auth/callback",
+    "/api/v1/auth/login",
 )
 
 _token_manager = TokenManager()
@@ -37,12 +38,16 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if path in EXEMPT_PATHS or any(path.startswith(p) for p in EXEMPT_PATHS):
             return await call_next(request)
 
-        # 提取 token
+        # 提取 token — 支持 Authorization header 和 HttpOnly Cookie
+        token = None
         auth_header = request.headers.get("Authorization", "")
-        if not auth_header.startswith("Bearer "):
-            return JSONResponse(status_code=401, content={"detail": "未提供认证凭据"})
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+        elif "token" in request.cookies:
+            token = request.cookies["token"]
 
-        token = auth_header[7:]
+        if not token:
+            return JSONResponse(status_code=401, content={"detail": "未提供认证凭据"})
         payload = _token_manager.verify_token(token)
         if payload is None:
             return JSONResponse(status_code=401, content={"detail": "无效或过期的凭据"})

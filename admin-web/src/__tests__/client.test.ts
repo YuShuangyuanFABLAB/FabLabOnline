@@ -6,12 +6,12 @@ describe('API Client', () => {
   })
 
   it('registers a 401 response interceptor', async () => {
-    const mockUse = vi.fn()
+    const mockResponseUse = vi.fn()
     vi.doMock('axios', () => ({
       default: {
         create: () => ({
           interceptors: {
-            response: { use: mockUse },
+            response: { use: mockResponseUse },
           },
           get: vi.fn(),
           post: vi.fn(),
@@ -22,8 +22,18 @@ describe('API Client', () => {
     }))
 
     await import('@/api/client')
-    expect(mockUse).toHaveBeenCalledTimes(1)
-    // First arg = success handler, second arg = error handler
-    expect(mockUse).toHaveBeenCalledWith(expect.any(Function), expect.any(Function))
+    expect(mockResponseUse).toHaveBeenCalledTimes(1)
+    expect(mockResponseUse).toHaveBeenCalledWith(expect.any(Function), expect.any(Function))
+  })
+
+  it('does not use localStorage for token storage', async () => {
+    // Verify client.ts has no localStorage references
+    const fs = await import('fs')
+    const path = await import('path')
+    const clientCode = fs.readFileSync(
+      path.resolve(import.meta.dirname, '../api/client.ts'),
+      'utf-8',
+    )
+    expect(clientCode).not.toContain('localStorage')
   })
 })

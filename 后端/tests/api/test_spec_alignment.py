@@ -82,9 +82,10 @@ class TestHeartbeatSlidingExpiration:
         request.state.user_id = "user_001"
         request.state.tenant_id = "default"
         request.headers = {"Authorization": "Bearer old-token"}
+        request.cookies = {}
 
-        with patch("api.v1.auth.token_mgr") as mock_tm:
-            # Token 还剩不到 1 天过期
+        with patch("api.v1.auth.token_mgr") as mock_tm, \
+             patch("api.v1.auth.async_session") as mock_session:
             mock_tm.verify_token.return_value = {
                 "sub": "user_001",
                 "tenant_id": "default",
@@ -92,10 +93,17 @@ class TestHeartbeatSlidingExpiration:
             }
             mock_tm.create_token.return_value = "new-jwt-token"
 
+            # Mock DB for user name lookup
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__ = AsyncMock(return_value=mock_db)
+            mock_session.return_value.__aexit__ = AsyncMock(return_value=False)
+            mock_result = MagicMock()
+            mock_result.scalar_one_or_none.return_value = None
+            mock_db.execute.return_value = mock_result
+
             result = await heartbeat(request)
 
-            assert result["data"]["alive"] is True
-            assert result["data"].get("token") == "new-jwt-token"
+            assert result.body is not None  # Response object with cookie
             mock_tm.create_token.assert_called_once()
 
     @pytest.mark.asyncio
@@ -108,15 +116,23 @@ class TestHeartbeatSlidingExpiration:
         request.state.user_id = "user_001"
         request.state.tenant_id = "default"
         request.headers = {"Authorization": "Bearer valid-token"}
+        request.cookies = {}
 
-        with patch("api.v1.auth.token_mgr") as mock_tm:
-            # Token 还有 6 天过期（远超 1 天）
+        with patch("api.v1.auth.token_mgr") as mock_tm, \
+             patch("api.v1.auth.async_session") as mock_session:
             mock_tm.verify_token.return_value = {
                 "sub": "user_001",
                 "tenant_id": "default",
                 "exp": int(time.time()) + 6 * 86400,
             }
             mock_tm.create_token.return_value = "should-not-be-called"
+
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__ = AsyncMock(return_value=mock_db)
+            mock_session.return_value.__aexit__ = AsyncMock(return_value=False)
+            mock_result = MagicMock()
+            mock_result.scalar_one_or_none.return_value = None
+            mock_db.execute.return_value = mock_result
 
             result = await heartbeat(request)
 

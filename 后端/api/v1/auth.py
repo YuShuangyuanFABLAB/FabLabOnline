@@ -1,21 +1,112 @@
-"""Auth API — 扫码登录 + 会话管理"""
+"""Auth API — 扫码登录 + 会话管理 + 登录限流"""
 import secrets
 import time
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
+from pydantic import BaseModel
 from sqlalchemy import select
 
+from config.settings import settings
 from infrastructure.database import async_session
+from infrastructure.redis import redis_client
 from models.user import User
 from domains.identity.wechat_oauth import WechatOAuth
 from domains.identity.token_manager import TokenManager
 from domains.identity.session_manager import SessionManager
+from domains.identity.password import verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 oauth = WechatOAuth()
 token_mgr = TokenManager()
 session_mgr = SessionManager()
+
+LOGIN_RATE_LIMIT = 5         # 最大失败次数
+LOGIN_LOCKOUT_SECONDS = 900  # 锁定 15 分钟
+
+
+class LoginRequest(BaseModel):
+    user_id: str
+    password: str
+
+
+def _rate_key(user_id: str) -> str:
+    return f"login_fail:{user_id}"
+
+
+@router.post("/login")
+async def password_login(body: LoginRequest):
+    """密码登录（开发模式）— 生产环境应使用微信扫码"""
+    # ── 限流检查 ──
+    key = _rate_key(body.user_id)
+    fail_count = await redis_client.get(key)
+    if fail_count is not None and int(fail_count) >= LOGIN_RATE_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail=f"登录失败次数过多，请 {LOGIN_LOCKOUT_SECONDS // 60} 分钟后重试",
+        )
+
+    async with async_session() as db:
+        # 查询用户
+        result = await db.execute(
+            select(User).where(User.id == body.user_id, User.deleted_at.is_(None))
+        )
+        user = result.scalar_one_or_none()
+        if not user:
+            await _record_failure(key)
+            raise HTTPException(status_code=401, detail="用户不存在")
+
+        # 验证密码
+        from models.config import Config
+        pw_result = await db.execute(
+            select(Config).where(
+                Config.scope == "user",
+                Config.scope_id == body.user_id,
+                Config.key == "password_hash",
+            )
+        )
+        pw_config = pw_result.scalar_one_or_none()
+        if not pw_config:
+            await _record_failure(key)
+            raise HTTPException(status_code=401, detail="密码未设置")
+
+        stored_hash = pw_config.value
+        if not verify_password(body.password, stored_hash):
+            await _record_failure(key)
+            raise HTTPException(status_code=401, detail="密码错误")
+
+    # ── 登录成功：清除失败计数 ──
+    await redis_client.delete(key)
+
+    # 签发 JWT
+    token = token_mgr.create_token(user_id=user.id, tenant_id=user.tenant_id)
+    await session_mgr.cache_user_status(user.id, "active")
+
+    # 通过 HttpOnly Cookie 传递 token（不放入 response body）
+    response = Response(
+        content='{"data":{"user":{"id":"'
+                + user.id + '","name":"'
+                + user.name + '","tenant_id":"'
+                + user.tenant_id + '","roles":["super_admin"]}}}',
+        media_type="application/json",
+        status_code=200,
+    )
+    response.set_cookie(
+        key="token",
+        value=token,
+        httponly=True,
+        secure=not settings.DEBUG,  # 开发模式不要求 HTTPS
+        samesite="lax",
+        max_age=settings.JWT_EXPIRE_DAYS * 86400,
+    )
+    return response
+
+
+async def _record_failure(key: str):
+    """记录一次登录失败，设置 TTL"""
+    count = await redis_client.incr(key)
+    if count == 1:
+        await redis_client.expire(key, LOGIN_LOCKOUT_SECONDS)
 
 
 @router.post("/qrcode")
@@ -46,7 +137,6 @@ async def wechat_callback(code: str, state: str):
         )
         user = user_result.scalar_one_or_none()
         if not user:
-            # 首次登录：创建用户（分配到默认 tenant，待管理员审核分配校区）
             user = User(
                 id=f"u_{secrets.token_hex(8)}",
                 tenant_id="default",
@@ -61,11 +151,7 @@ async def wechat_callback(code: str, state: str):
 
     # 签发 JWT
     token = token_mgr.create_token(user_id=user.id, tenant_id=user.tenant_id)
-
-    # 缓存用户状态
     await session_mgr.cache_user_status(user.id, "active")
-
-    # 更新扫码会话状态为已认证
     await oauth.set_session_token(
         state, token,
         {"id": user.id, "name": user.name, "tenant_id": user.tenant_id},
@@ -82,11 +168,25 @@ async def wechat_callback(code: str, state: str):
 
 @router.post("/heartbeat")
 async def heartbeat(request: Request):
-    """心跳保活 — 滑动过期：距过期 < 1 天时自动签发新 Token"""
+    """心跳保活 — 滑动过期 + 恢复用户信息"""
     user_id = getattr(request.state, "user_id", None)
     tenant_id = getattr(request.state, "tenant_id", "")
 
-    # 检查 Token 是否即将过期
+    if not user_id:
+        return {"data": {"alive": False}}
+
+    # 查询用户名（供前端恢复会话）
+    user_name = user_id
+    async with async_session() as db:
+        result = await db.execute(
+            select(User).where(User.id == user_id, User.deleted_at.is_(None))
+        )
+        user = result.scalar_one_or_none()
+        if user:
+            user_name = user.name
+
+    # 检查 Token 是否即将过期 → 自动续签 Cookie
+    token = None
     auth_header = request.headers.get("Authorization", "")
     if auth_header.startswith("Bearer "):
         payload = token_mgr.verify_token(auth_header[7:])
@@ -94,16 +194,45 @@ async def heartbeat(request: Request):
             exp = payload.get("exp", 0)
             now = time.time()
             remaining = exp - now
-            # 距过期 < 1 天 → 签发新 Token
             if 0 < remaining < 86400:
-                new_token = token_mgr.create_token(user_id=user_id, tenant_id=tenant_id)
-                return {"data": {"alive": True, "user_id": user_id, "token": new_token}}
+                token = token_mgr.create_token(user_id=user_id, tenant_id=tenant_id)
+    elif "token" in request.cookies:
+        payload = token_mgr.verify_token(request.cookies["token"])
+        if payload:
+            exp = payload.get("exp", 0)
+            now = time.time()
+            remaining = exp - now
+            if 0 < remaining < 86400:
+                token = token_mgr.create_token(user_id=user_id, tenant_id=tenant_id)
 
-    return {"data": {"alive": True, "user_id": user_id}}
+    response_data = {
+        "alive": True,
+        "user_id": user_id,
+        "user_name": user_name,
+        "tenant_id": tenant_id,
+        "roles": ["super_admin"],  # TODO: query from user_roles
+    }
+
+    if token:
+        from starlette.responses import JSONResponse
+        resp = JSONResponse({"data": response_data})
+        resp.set_cookie(
+            key="token", value=token,
+            httponly=True, secure=not settings.DEBUG,
+            samesite="lax", max_age=settings.JWT_EXPIRE_DAYS * 86400,
+        )
+        return resp
+
+    return {"data": response_data}
 
 
 @router.post("/logout")
 async def logout(request: Request):
     """退出登录"""
     user_id = getattr(request.state, "user_id", None)
-    return {"data": {"logged_out": True, "user_id": user_id}}
+    response = Response(
+        content='{"data":{"logged_out":true,"user_id":"' + str(user_id) + '"}}',
+        media_type="application/json",
+    )
+    response.delete_cookie(key="token")
+    return response

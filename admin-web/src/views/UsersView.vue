@@ -1,42 +1,67 @@
 <template>
-  <div>
-    <h2>用户管理</h2>
-    <div style="display: flex; gap: 12px; margin-bottom: 16px">
-      <el-input v-model="search" placeholder="搜索用户名" clearable style="width: 240px" @clear="fetchUsers" @keyup.enter="fetchUsers" />
-      <el-button type="primary" @click="fetchUsers">搜索</el-button>
+  <div class="users-view">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <el-input
+        v-model="search"
+        placeholder="搜索用户名"
+        clearable
+        prefix-icon="Search"
+        style="width: 260px"
+        @clear="fetchUsers"
+        @keyup.enter="fetchUsers"
+      />
+      <el-button type="primary" prefix-icon="Search" @click="fetchUsers">搜索</el-button>
     </div>
-    <el-table :data="filteredUsers" v-loading="loading">
-      <el-table-column prop="id" label="ID" />
-      <el-table-column prop="name" label="姓名" />
-      <el-table-column prop="status" label="状态" />
-      <el-table-column label="操作" width="260">
-        <template #default="{ row }">
-          <el-button
-            size="small"
-            :type="row.status === 'active' ? 'danger' : 'success'"
-            @click="toggleStatus(row)"
-          >
-            {{ row.status === 'active' ? '禁用' : '启用' }}
-          </el-button>
-          <el-button size="small" @click="openRoleDialog(row)">分配角色</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-pagination
-      v-model:current-page="page"
-      :page-size="20"
-      :total="total"
-      @current-change="fetchUsers"
-      style="margin-top: 16px"
-    />
 
-    <el-dialog v-model="showRoleDialog" title="分配角色" width="400px">
-      <el-form>
+    <!-- Table -->
+    <el-card shadow="never" class="table-card">
+      <el-table :data="filteredUsers" v-loading="loading" stripe>
+        <el-table-column prop="id" label="ID" width="160" />
+        <el-table-column prop="name" label="姓名" width="160" />
+        <el-table-column label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="statusTagType(row.status)" size="small" effect="plain">
+              {{ statusLabel(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="220">
+          <template #default="{ row }">
+            <el-button
+              size="small"
+              :type="row.status === 'active' ? 'danger' : 'success'"
+              plain
+              @click="toggleStatus(row)"
+            >
+              {{ row.status === 'active' ? '禁用' : '启用' }}
+            </el-button>
+            <el-button size="small" plain @click="openRoleDialog(row)">
+              <el-icon class="btn-icon"><Key /></el-icon>
+              分配角色
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-pagination
+        v-model:current-page="page"
+        :page-size="20"
+        :total="total"
+        layout="prev, pager, next"
+        @current-change="fetchUsers"
+        class="pagination"
+      />
+    </el-card>
+
+    <!-- Role Dialog -->
+    <el-dialog v-model="showRoleDialog" title="分配角色" width="420px" destroy-on-close>
+      <el-form label-width="60px">
         <el-form-item label="用户">
           <span>{{ currentUser?.name }}</span>
         </el-form-item>
         <el-form-item label="角色">
-          <el-select v-model="selectedRole" placeholder="选择角色">
+          <el-select v-model="selectedRole" placeholder="选择角色" style="width: 100%">
             <el-option label="超级管理员" value="super_admin" />
             <el-option label="机构管理员" value="org_admin" />
             <el-option label="校区管理员" value="campus_admin" />
@@ -55,6 +80,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Key } from '@element-plus/icons-vue'
 import { usersApi } from '@/api/users'
 
 interface UserRow {
@@ -77,6 +103,14 @@ const filteredUsers = computed(() => {
   if (!search.value) return users.value
   return users.value.filter(u => u.name.includes(search.value))
 })
+
+function statusTagType(status: string) {
+  return status === 'active' ? 'success' : status === 'disabled' ? 'danger' : 'warning'
+}
+
+function statusLabel(status: string) {
+  return status === 'active' ? '正常' : status === 'disabled' ? '已禁用' : status
+}
 
 async function fetchUsers() {
   loading.value = true
@@ -121,3 +155,24 @@ async function assignRole() {
 
 onMounted(fetchUsers)
 </script>
+
+<style scoped>
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.table-card {
+  border-radius: 8px;
+}
+
+.btn-icon {
+  margin-right: 4px;
+}
+
+.pagination {
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+</style>

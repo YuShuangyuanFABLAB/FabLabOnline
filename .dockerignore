@@ -1,0 +1,16 @@
+# 不需要进入构建上下文的目录
+PPTGenerator/
+sdk/
+课堂监测系统/
+admin-web/node_modules/
+admin-web/dist/
+后端/__pycache__/
+后端/**/__pycache__/
+后端/.pytest_cache/
+后端/tests/
+.git/
+.gitignore
+.claude/
+*.md
+desktop.ini
+.env

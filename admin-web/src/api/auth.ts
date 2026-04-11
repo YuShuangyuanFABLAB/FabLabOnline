@@ -7,6 +7,9 @@ export const authApi = {
   getStatus(state: string) {
     return client.get(`/auth/qrcode/${state}/status`)
   },
+  login(userId: string, password: string) {
+    return client.post('/auth/login', { user_id: userId, password })
+  },
   heartbeat() {
     return client.post('/auth/heartbeat')
   },

@@ -1,26 +1,48 @@
 <template>
-  <div>
-    <h2>校区管理</h2>
-    <el-button type="primary" style="margin-bottom: 16px" @click="openCreateDialog">新增校区</el-button>
-    <el-table :data="campuses" v-loading="loading">
-      <el-table-column prop="id" label="ID" />
-      <el-table-column prop="name" label="名称" />
-      <el-table-column prop="status" label="状态" />
-      <el-table-column label="操作" width="200">
-        <template #default="{ row }">
-          <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
-          <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+  <div class="campuses-view">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <el-button type="primary" @click="openCreateDialog">
+        <el-icon class="btn-icon"><Plus /></el-icon>
+        新增校区
+      </el-button>
+    </div>
 
-    <el-dialog v-model="showDialog" :title="isEditing ? '编辑校区' : '新增校区'" width="400px">
-      <el-form>
-        <el-form-item v-if="!isEditing" label="校区ID">
-          <el-input v-model="form.id" />
+    <!-- Table -->
+    <el-card shadow="never" class="table-card">
+      <el-table :data="campuses" v-loading="loading" stripe>
+        <el-table-column prop="id" label="ID" width="160" />
+        <el-table-column prop="name" label="名称" />
+        <el-table-column label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 'active' ? 'success' : 'danger'" size="small" effect="plain">
+              {{ row.status === 'active' ? '正常' : '已禁用' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="200">
+          <template #default="{ row }">
+            <el-button size="small" plain @click="openEditDialog(row)">
+              <el-icon class="btn-icon"><Edit /></el-icon>
+              编辑
+            </el-button>
+            <el-button size="small" type="danger" plain @click="handleDelete(row)">
+              <el-icon class="btn-icon"><Delete /></el-icon>
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
+
+    <!-- Dialog -->
+    <el-dialog v-model="showDialog" :title="isEditing ? '编辑校区' : '新增校区'" width="420px" destroy-on-close>
+      <el-form label-width="80px">
+        <el-form-item v-if="!isEditing" label="校区 ID">
+          <el-input v-model="form.id" placeholder="输入唯一标识" />
         </el-form-item>
         <el-form-item label="校区名称">
-          <el-input v-model="form.name" />
+          <el-input v-model="form.name" placeholder="输入校区名称" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -34,9 +56,17 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { campusesApi } from '@/api/campuses'
 
-const campuses = ref<Record<string, unknown>[]>([])
+interface CampusRow {
+  id: string
+  name: string
+  status: string
+  [key: string]: unknown
+}
+
+const campuses = ref<CampusRow[]>([])
 const loading = ref(false)
 const showDialog = ref(false)
 const isEditing = ref(false)
@@ -47,7 +77,7 @@ async function fetchCampuses() {
   loading.value = true
   try {
     const { data } = await campusesApi.list()
-    campuses.value = data.data
+    campuses.value = data.data as CampusRow[]
   } catch {
     ElMessage.error('获取校区列表失败')
   } finally {
@@ -63,11 +93,11 @@ function openCreateDialog() {
   showDialog.value = true
 }
 
-function openEditDialog(row: Record<string, unknown>) {
+function openEditDialog(row: CampusRow) {
   isEditing.value = true
-  editingId.value = row.id as string
-  form.id = row.id as string
-  form.name = row.name as string
+  editingId.value = row.id
+  form.id = row.id
+  form.name = row.name
   showDialog.value = true
 }
 
@@ -87,10 +117,10 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(campus: Record<string, unknown>) {
+async function handleDelete(campus: CampusRow) {
   try {
-    await ElMessageBox.confirm('确认删除该校区？', '提示')
-    await campusesApi.remove(campus.id as string)
+    await ElMessageBox.confirm('确认删除该校区？', '提示', { type: 'warning' })
+    await campusesApi.remove(campus.id)
     ElMessage.success('删除成功')
     await fetchCampuses()
   } catch {
@@ -100,3 +130,19 @@ async function handleDelete(campus: Record<string, unknown>) {
 
 onMounted(fetchCampuses)
 </script>
+
+<style scoped>
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.table-card {
+  border-radius: 8px;
+}
+
+.btn-icon {
+  margin-right: 4px;
+}
+</style>

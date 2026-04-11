@@ -1,14 +1,78 @@
 <template>
-  <div class="login-container">
-    <el-card class="login-card">
-      <h2>法贝实验室管理系统</h2>
-      <div v-if="!qrUrl" class="loading">加载中...</div>
-      <div v-else class="qrcode-section">
-        <p>请使用微信扫描二维码登录</p>
-        <img :src="qrUrl" alt="登录二维码" class="qrcode-img" />
-        <p v-if="expired" class="expired">二维码已过期，<el-link @click="fetchQrCode">点击刷新</el-link></p>
+  <div class="login-wrapper">
+    <!-- Brand Panel -->
+    <div class="brand-panel">
+      <div class="brand-content">
+        <img src="@/assets/logo.svg" alt="FabLab" class="brand-logo" />
+        <h1 class="brand-title">FabLab</h1>
+        <p class="brand-subtitle">法贝实验室管理系统</p>
+        <div class="brand-features">
+          <div class="feature-item">
+            <el-icon><DataLine /></el-icon>
+            <span>数据驱动决策</span>
+          </div>
+          <div class="feature-item">
+            <el-icon><User /></el-icon>
+            <span>智能用户管理</span>
+          </div>
+          <div class="feature-item">
+            <el-icon><TrendCharts /></el-icon>
+            <span>实时数据分析</span>
+          </div>
+        </div>
       </div>
-    </el-card>
+    </div>
+
+    <!-- Login Form Panel -->
+    <div class="form-panel">
+      <div class="form-content">
+        <h2 class="form-title">欢迎登录</h2>
+        <p class="form-desc">登录以访问管理后台</p>
+
+        <el-form @submit.prevent="handleLogin" class="login-form">
+          <el-form-item>
+            <el-input
+              v-model="userId"
+              placeholder="用户 ID"
+              size="large"
+              prefix-icon="User"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-input
+              v-model="password"
+              type="password"
+              placeholder="密码"
+              size="large"
+              prefix-icon="Lock"
+              show-password
+            />
+          </el-form-item>
+          <el-button
+            type="primary"
+            size="large"
+            :loading="loading"
+            @click="handleLogin"
+            class="login-btn"
+          >
+            登录
+          </el-button>
+        </el-form>
+
+        <el-divider>
+          <span class="divider-text">或使用微信扫码</span>
+        </el-divider>
+
+        <div v-if="!qrUrl" class="qr-placeholder">
+          <el-icon :size="40" color="var(--fab-text-secondary)"><Connection /></el-icon>
+          <p>二维码加载中...</p>
+        </div>
+        <div v-else class="qr-section">
+          <img :src="qrUrl" alt="登录二维码" class="qr-img" />
+          <p>打开微信扫一扫</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -16,26 +80,50 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { DataLine, User, TrendCharts, Connection } from '@element-plus/icons-vue'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
+const userId = ref('admin')
+const password = ref('admin123')
+const loading = ref(false)
+
 const qrUrl = ref('')
 const qrState = ref('')
-const expired = ref(false)
 let pollTimer: ReturnType<typeof setInterval> | null = null
+
+async function handleLogin() {
+  if (!userId.value || !password.value) {
+    ElMessage.warning('请输入用户ID和密码')
+    return
+  }
+  loading.value = true
+  try {
+    const { data } = await authApi.login(userId.value, password.value)
+    const user = data.data.user
+    // Token is set via HttpOnly Cookie by backend — no localStorage needed
+    authStore.setUser(user)
+    ElMessage.success('登录成功')
+    router.push('/')
+  } catch (e: unknown) {
+    const err = e as { response?: { data?: { detail?: string } } }
+    ElMessage.error(err.response?.data?.detail || '登录失败')
+  } finally {
+    loading.value = false
+  }
+}
 
 async function fetchQrCode() {
   try {
     const { data } = await authApi.getQrCode()
     qrUrl.value = data.data.url
     qrState.value = data.data.state
-    expired.value = false
     startPolling()
   } catch {
-    ElMessage.error('获取二维码失败')
+    // no WeChat config — QR code unavailable
   }
 }
 
@@ -44,11 +132,7 @@ function startPolling() {
   let attempts = 0
   pollTimer = setInterval(async () => {
     attempts++
-    if (attempts > 120) {
-      expired.value = true
-      stopPolling()
-      return
-    }
+    if (attempts > 120) { stopPolling(); return }
     try {
       const { data } = await authApi.getStatus(qrState.value)
       if (data.data?.status === 'authenticated') {
@@ -63,10 +147,7 @@ function startPolling() {
 }
 
 function stopPolling() {
-  if (pollTimer) {
-    clearInterval(pollTimer)
-    pollTimer = null
-  }
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
 }
 
 onMounted(fetchQrCode)
@@ -74,21 +155,140 @@ onUnmounted(stopPolling)
 </script>
 
 <style scoped>
-.login-container {
+.login-wrapper {
   display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
 }
-.login-card {
-  width: 400px;
+
+/* ─── Brand Panel ─── */
+.brand-panel {
+  flex: 1;
+  background: linear-gradient(135deg, #0c4a6e 0%, #0ea5e9 50%, #38bdf8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+}
+
+.brand-content {
+  position: relative;
+  z-index: 1;
   text-align: center;
+  color: #fff;
 }
-.qrcode-img {
-  width: 200px;
-  height: 200px;
+
+.brand-logo {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  filter: brightness(0) invert(1);
 }
-.expired {
-  color: #e6a23c;
+
+.brand-title {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.brand-subtitle {
+  font-size: 16px;
+  opacity: 0.85;
+  margin-bottom: 40px;
+}
+
+.brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  opacity: 0.9;
+}
+
+/* ─── Form Panel ─── */
+.form-panel {
+  width: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  background: var(--fab-header-bg);
+  transition: background 0.3s;
+}
+
+.form-content {
+  width: 100%;
+  max-width: 340px;
+}
+
+.form-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--fab-text);
+  margin-bottom: 4px;
+}
+
+.form-desc {
+  font-size: 14px;
+  color: var(--fab-text-secondary);
+  margin-bottom: 32px;
+}
+
+.login-form {
+  margin-bottom: 0;
+}
+
+.login-btn {
+  width: 100%;
+  height: 44px;
+  font-size: 15px;
+}
+
+.divider-text {
+  font-size: 12px;
+  color: var(--fab-text-secondary);
+}
+
+.qr-placeholder,
+.qr-section {
+  text-align: center;
+  color: var(--fab-text-secondary);
+  font-size: 13px;
+}
+
+.qr-img {
+  width: 160px;
+  height: 160px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+/* ─── Dark mode brand panel ─── */
+html.dark .brand-panel {
+  background: linear-gradient(135deg, #082f49 0%, #0369a1 50%, #0284c7 100%);
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 768px) {
+  .brand-panel { display: none; }
+  .form-panel { width: 100%; }
 }
 </style>
