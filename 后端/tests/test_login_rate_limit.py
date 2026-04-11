@@ -74,6 +74,7 @@ class TestLoginRateLimit:
 
             with patch("api.v1.auth.redis_client", mock_redis), \
                  patch("api.v1.auth.session_mgr", mock_sm), \
+                 patch("api.v1.auth.get_user_roles", new_callable=AsyncMock, return_value=[{"role_id": "super_admin", "scope_id": "*"}]), \
                  patch("api.v1.auth.async_session") as mock_session:
                 mock_db = AsyncMock()
                 mock_session.return_value.__aenter__ = AsyncMock(return_value=mock_db)

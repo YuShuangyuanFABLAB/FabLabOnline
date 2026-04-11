@@ -8,6 +8,7 @@ from infrastructure.database import async_session
 from infrastructure.redis import redis_client
 from models.config import Config as ConfigModel
 from domains.access.policy import get_policy, PermissionContext
+from domains.access.audit import write_audit_log
 
 router = APIRouter(prefix="/config", tags=["config"])
 
@@ -84,5 +85,16 @@ async def update_config(request: Request, scope: str, scope_id: str | None, key:
 
     cache_key = f"config:{scope}:{scope_id or 'global'}:{key}"
     await redis_client.delete(cache_key)
+
+    await write_audit_log(
+        tenant_id=tenant_id,
+        user_id=request.state.user_id,
+        action="update",
+        resource_type="config",
+        resource_id=key,
+        changes={"scope": scope, "scope_id": scope_id, "value": value},
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
 
     return {"success": True, "data": {"key": key, "value": value}}

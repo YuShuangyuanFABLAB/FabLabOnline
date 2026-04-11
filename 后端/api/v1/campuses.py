@@ -41,6 +41,8 @@ async def create_campus_endpoint(request: Request, campus_id: str, name: str):
         action="create",
         resource_type="campus",
         resource_id=campus.id,
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
     )
 
     return {"success": True, "data": {"id": campus.id, "name": campus.name}}
@@ -68,6 +70,8 @@ async def update_campus_endpoint(campus_id: str, request: Request, name: str | N
         resource_type="campus",
         resource_id=campus_id,
         changes=kwargs,
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
     )
 
     return {"success": True, "data": {"id": campus.id, "name": campus.name}}
@@ -91,6 +95,8 @@ async def delete_campus_endpoint(campus_id: str, request: Request):
         action="delete",
         resource_type="campus",
         resource_id=campus_id,
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
     )
 
     return {"success": True}

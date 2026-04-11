@@ -8,6 +8,7 @@ from sqlalchemy import select
 from infrastructure.database import async_session
 from models.app import App
 from domains.access.policy import get_policy, PermissionContext
+from domains.access.audit import write_audit_log
 
 router = APIRouter(prefix="/apps", tags=["apps"])
 
@@ -47,4 +48,16 @@ async def register_app(request: Request, app_id: str, name: str, app_key: str):
         db.add(app)
         await db.commit()
         await db.refresh(app)
-        return {"success": True, "data": {"id": app.id, "name": app.name, "app_key": app.app_key}}
+
+    await write_audit_log(
+        tenant_id=tenant_id,
+        user_id=request.state.user_id,
+        action="create",
+        resource_type="app",
+        resource_id=app_id,
+        changes={"name": name, "app_key": app_key},
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
+
+    return {"success": True, "data": {"id": app.id, "name": app.name, "app_key": app.app_key}}

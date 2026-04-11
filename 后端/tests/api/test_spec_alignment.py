@@ -85,7 +85,8 @@ class TestHeartbeatSlidingExpiration:
         request.cookies = {}
 
         with patch("api.v1.auth.token_mgr") as mock_tm, \
-             patch("api.v1.auth.async_session") as mock_session:
+             patch("api.v1.auth.async_session") as mock_session, \
+             patch("api.v1.auth.get_user_roles", new_callable=AsyncMock, return_value=[{"role_id": "super_admin", "scope_id": "*"}]):
             mock_tm.verify_token.return_value = {
                 "sub": "user_001",
                 "tenant_id": "default",
@@ -119,7 +120,8 @@ class TestHeartbeatSlidingExpiration:
         request.cookies = {}
 
         with patch("api.v1.auth.token_mgr") as mock_tm, \
-             patch("api.v1.auth.async_session") as mock_session:
+             patch("api.v1.auth.async_session") as mock_session, \
+             patch("api.v1.auth.get_user_roles", new_callable=AsyncMock, return_value=[]):
             mock_tm.verify_token.return_value = {
                 "sub": "user_001",
                 "tenant_id": "default",

@@ -1,4 +1,5 @@
 """Auth API — 扫码登录 + 会话管理 + 登录限流"""
+import json
 import secrets
 import time
 
@@ -14,6 +15,7 @@ from domains.identity.wechat_oauth import WechatOAuth
 from domains.identity.token_manager import TokenManager
 from domains.identity.session_manager import SessionManager
 from domains.identity.password import verify_password
+from domains.access.roles import get_user_roles
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -78,6 +80,10 @@ async def password_login(body: LoginRequest):
     # ── 登录成功：清除失败计数 ──
     await redis_client.delete(key)
 
+    # 查询真实角色
+    user_roles = await get_user_roles(user.id)
+    role_ids = list({r["role_id"] for r in user_roles})
+
     # 签发 JWT
     token = token_mgr.create_token(user_id=user.id, tenant_id=user.tenant_id)
     await session_mgr.cache_user_status(user.id, "active")
@@ -87,7 +93,7 @@ async def password_login(body: LoginRequest):
         content='{"data":{"user":{"id":"'
                 + user.id + '","name":"'
                 + user.name + '","tenant_id":"'
-                + user.tenant_id + '","roles":["super_admin"]}}}',
+                + user.tenant_id + '","roles":' + json.dumps(role_ids) + '}}}',
         media_type="application/json",
         status_code=200,
     )
@@ -205,12 +211,16 @@ async def heartbeat(request: Request):
             if 0 < remaining < 86400:
                 token = token_mgr.create_token(user_id=user_id, tenant_id=tenant_id)
 
+    # 查询真实角色
+    user_roles = await get_user_roles(user_id)
+    role_ids = list({r["role_id"] for r in user_roles})
+
     response_data = {
         "alive": True,
         "user_id": user_id,
         "user_name": user_name,
         "tenant_id": tenant_id,
-        "roles": ["super_admin"],  # TODO: query from user_roles
+        "roles": role_ids,
     }
 
     if token:

@@ -173,8 +173,21 @@ async def seed_data():
         print("Seed data inserted: admin / admin123")
 
 
+async def _has_alembic_version() -> bool:
+    """检查 alembic_version 表是否存在且有记录"""
+    try:
+        async with engine.begin() as conn:
+            result = await conn.execute(text("SELECT COUNT(*) FROM alembic_version"))
+            return result.scalar() > 0
+    except Exception:
+        return False
+
+
 async def init():
-    await create_tables()
+    """数据库初始化 — Alembic 管理迁移，本脚本仅负责种子数据"""
+    if not await _has_alembic_version():
+        print("No Alembic migrations found, creating tables directly...")
+        await create_tables()
     await seed_data()
     print("Database initialization complete")
 

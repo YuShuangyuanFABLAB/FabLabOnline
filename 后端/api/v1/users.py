@@ -95,6 +95,8 @@ async def update_user_status(user_id: str, request: Request, status: str):
             resource_type="user",
             resource_id=user_id,
             changes={"status": {"old": old_status, "new": status}},
+            ip_address=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
         )
 
         return {"success": True, "data": {"id": user.id, "status": user.status}}
@@ -117,6 +119,8 @@ async def assign_user_role(user_id: str, request: Request, role_id: str, scope_i
         resource_type="user",
         resource_id=user_id,
         changes={"role_assigned": {"role_id": role_id, "scope_id": scope_id}},
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
     )
 
     return {"success": True, "data": {"user_id": ur.user_id, "role_id": ur.role_id, "scope_id": ur.scope_id}}
