@@ -1,6 +1,9 @@
 """Roles API — 角色与权限查询"""
 from fastapi import APIRouter, HTTPException, Request
+from sqlalchemy import select
 
+from infrastructure.database import async_session
+from models.role import Role
 from domains.access.policy import get_policy, PermissionContext
 from domains.access.roles import get_roles, get_user_roles
 from domains.access.permissions import get_role_permissions
@@ -45,3 +48,25 @@ async def get_user_roles_endpoint(user_id: str, request: Request):
 
     roles = await get_user_roles(user_id)
     return {"success": True, "data": roles}
+
+
+@router.delete("/{role_id}")
+async def delete_role(role_id: str, request: Request):
+    """删除角色 — 系统角色禁止删除"""
+    tenant_id = request.state.tenant_id
+    policy = get_policy()
+    ctx = PermissionContext(tenant_id=tenant_id)
+    if not await policy.check_permission(request.state.user_id, "delete", "role", ctx):
+        raise HTTPException(status_code=403, detail="Permission denied")
+
+    async with async_session() as db:
+        result = await db.execute(select(Role).where(Role.id == role_id))
+        role = result.scalar_one_or_none()
+        if not role:
+            raise HTTPException(status_code=404, detail="角色不存在")
+        if role.is_system:
+            raise HTTPException(status_code=403, detail="系统角色禁止删除")
+        await db.delete(role)
+        await db.commit()
+
+    return {"success": True}

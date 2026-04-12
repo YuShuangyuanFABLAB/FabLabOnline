@@ -6,7 +6,6 @@ class User(Base, TenantModel):
     __tablename__ = "users"
 
     id = Column(String(64), primary_key=True)
-    tenant_id = Column(String(64), nullable=False, index=True)
     campus_id = Column(String(64))
     wechat_openid = Column(String(128), unique=True)
     wechat_unionid = Column(String(128))

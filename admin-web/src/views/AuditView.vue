@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import client from '@/api/client'
+import { auditApi } from '@/api/audit'
 
 const logs = ref<Record<string, unknown>[]>([])
 const loading = ref(false)
@@ -67,7 +67,7 @@ function formatTime(ts: unknown): string {
 async function fetchLogs() {
   loading.value = true
   try {
-    const { data } = await client.get('/audit/logs', { params: { page: page.value, size: 20 } })
+    const { data } = await auditApi.list(page.value)
     logs.value = data.data ?? []
     total.value = data.total ?? 0
   } catch {

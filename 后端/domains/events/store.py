@@ -16,6 +16,7 @@ logger = structlog.get_logger()
 _event_queue: asyncio.Queue | None = None
 BATCH_SIZE = 100
 FLUSH_INTERVAL = 1.0  # 秒
+_writer_task: asyncio.Task | None = None
 
 
 def get_event_queue() -> asyncio.Queue:
@@ -23,6 +24,26 @@ def get_event_queue() -> asyncio.Queue:
     if _event_queue is None:
         _event_queue = asyncio.Queue()
     return _event_queue
+
+
+def start_writer_loop() -> asyncio.Task:
+    """启动事件写入后台任务，返回 Task 引用"""
+    global _writer_task
+    _writer_task = asyncio.create_task(_event_writer_loop())
+    return _writer_task
+
+
+async def drain_queue():
+    """排空队列中剩余事件（shutdown 时调用）"""
+    queue = get_event_queue()
+    batch = []
+    while not queue.empty():
+        try:
+            batch.append(queue.get_nowait())
+        except asyncio.QueueEmpty:
+            break
+    if batch:
+        await _bulk_insert(batch)
 
 
 async def enqueue_events(

@@ -2,6 +2,7 @@
 import json
 
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from infrastructure.database import async_session
@@ -11,6 +12,13 @@ from domains.access.policy import get_policy, PermissionContext
 from domains.access.audit import write_audit_log
 
 router = APIRouter(prefix="/config", tags=["config"])
+
+
+class UpdateConfigRequest(BaseModel):
+    scope: str = Field(..., min_length=1, max_length=64)
+    scope_id: str | None = None
+    key: str = Field(..., min_length=1, max_length=128)
+    value: dict
 
 
 async def get_config_value(scope: str, scope_id: str | None, key: str) -> dict | None:
@@ -60,7 +68,7 @@ async def get_config(request: Request, scope: str = "global", scope_id: str | No
 
 
 @router.put("")
-async def update_config(request: Request, scope: str, scope_id: str | None, key: str, value: dict):
+async def update_config(request: Request, body: UpdateConfigRequest):
     tenant_id = request.state.tenant_id
     policy = get_policy()
     ctx = PermissionContext(tenant_id=tenant_id)
@@ -70,20 +78,20 @@ async def update_config(request: Request, scope: str, scope_id: str | None, key:
     async with async_session() as db:
         result = await db.execute(
             select(ConfigModel).where(
-                ConfigModel.scope == scope,
-                ConfigModel.scope_id == scope_id,
-                ConfigModel.key == key,
+                ConfigModel.scope == body.scope,
+                ConfigModel.scope_id == body.scope_id,
+                ConfigModel.key == body.key,
             )
         )
         config = result.scalar_one_or_none()
         if config:
-            config.value = value
+            config.value = body.value
         else:
-            config = ConfigModel(scope=scope, scope_id=scope_id, key=key, value=value)
+            config = ConfigModel(scope=body.scope, scope_id=body.scope_id, key=body.key, value=body.value)
             db.add(config)
         await db.commit()
 
-    cache_key = f"config:{scope}:{scope_id or 'global'}:{key}"
+    cache_key = f"config:{body.scope}:{body.scope_id or 'global'}:{body.key}"
     await redis_client.delete(cache_key)
 
     await write_audit_log(
@@ -91,10 +99,10 @@ async def update_config(request: Request, scope: str, scope_id: str | None, key:
         user_id=request.state.user_id,
         action="update",
         resource_type="config",
-        resource_id=key,
-        changes={"scope": scope, "scope_id": scope_id, "value": value},
+        resource_id=body.key,
+        changes={"scope": body.scope, "scope_id": body.scope_id, "value": body.value},
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent"),
     )
 
-    return {"success": True, "data": {"key": key, "value": value}}
+    return {"success": True, "data": {"key": body.key, "value": body.value}}

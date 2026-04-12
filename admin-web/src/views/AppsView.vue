@@ -35,7 +35,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import client from '@/api/client'
+import { appsApi } from '@/api/apps'
 
 interface AppRow {
   id: string
@@ -50,7 +50,7 @@ const apps = ref<AppRow[]>([])
 async function fetchApps() {
   loading.value = true
   try {
-    const { data } = await client.get('/apps')
+    const { data } = await appsApi.list()
     apps.value = data.data?.items || data.data || []
   } catch {
     apps.value = []
@@ -62,7 +62,7 @@ async function fetchApps() {
 async function toggleStatus(app: AppRow) {
   try {
     const newStatus = app.status === 'active' ? 'disabled' : 'active'
-    await client.put(`/apps/${app.id}/status`, { status: newStatus })
+    await appsApi.toggleStatus(app.id, newStatus)
     ElMessage.success('状态已更新')
     await fetchApps()
   } catch (e: unknown) {

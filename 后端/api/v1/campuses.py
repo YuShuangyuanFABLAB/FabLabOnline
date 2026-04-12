@@ -1,5 +1,6 @@
 """Campuses API — 校区管理"""
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, Field
 
 from domains.access.policy import get_policy, PermissionContext
 from domains.access.audit import write_audit_log
@@ -8,6 +9,15 @@ from domains.organization.campus import (
 )
 
 router = APIRouter(prefix="/campuses", tags=["campuses"])
+
+
+class CreateCampusRequest(BaseModel):
+    campus_id: str = Field(..., min_length=1, max_length=64)
+    name: str = Field(..., min_length=1, max_length=128)
+
+
+class UpdateCampusRequest(BaseModel):
+    name: str | None = Field(None, min_length=1, max_length=128)
 
 
 @router.get("")
@@ -26,14 +36,14 @@ async def list_campuses(request: Request, page: int = 1, size: int = 20):
 
 
 @router.post("")
-async def create_campus_endpoint(request: Request, campus_id: str, name: str):
+async def create_campus_endpoint(request: Request, body: CreateCampusRequest):
     tenant_id = request.state.tenant_id
     policy = get_policy()
     ctx = PermissionContext(tenant_id=tenant_id)
     if not await policy.check_permission(request.state.user_id, "create", "campus", ctx):
         raise HTTPException(status_code=403, detail="Permission denied")
 
-    campus = await create_campus(tenant_id, campus_id, name)
+    campus = await create_campus(tenant_id, body.campus_id, body.name)
 
     await write_audit_log(
         tenant_id=tenant_id,
@@ -49,7 +59,7 @@ async def create_campus_endpoint(request: Request, campus_id: str, name: str):
 
 
 @router.put("/{campus_id}")
-async def update_campus_endpoint(campus_id: str, request: Request, name: str | None = None):
+async def update_campus_endpoint(campus_id: str, request: Request, body: UpdateCampusRequest = None):
     tenant_id = request.state.tenant_id
     policy = get_policy()
     ctx = PermissionContext(tenant_id=tenant_id)
@@ -57,8 +67,8 @@ async def update_campus_endpoint(campus_id: str, request: Request, name: str | N
         raise HTTPException(status_code=403, detail="Permission denied")
 
     kwargs = {}
-    if name is not None:
-        kwargs["name"] = name
+    if body and body.name is not None:
+        kwargs["name"] = body.name
     campus = await update_campus(campus_id, tenant_id, **kwargs)
     if not campus:
         raise HTTPException(status_code=404, detail="Campus not found")

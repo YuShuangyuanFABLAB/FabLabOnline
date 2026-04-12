@@ -5,10 +5,10 @@ export const campusesApi = {
     return client.get('/campuses', { params: { page, size } })
   },
   create(campusId: string, name: string) {
-    return client.post('/campuses', null, { params: { campus_id: campusId, name } })
+    return client.post('/campuses', { campus_id: campusId, name })
   },
   update(id: string, name?: string) {
-    return client.put(`/campuses/${id}`, null, { params: { name } })
+    return client.put(`/campuses/${id}`, { name })
   },
   remove(id: string) {
     return client.delete(`/campuses/${id}`)

@@ -9,6 +9,7 @@ from api.v1.events import router as events_router
 from api.v1.analytics import router as analytics_router
 from api.v1.apps import router as apps_router
 from api.v1.config import router as config_router
+from api.v1.audit import router as audit_router
 
 router = APIRouter(prefix="/api/v1")
 router.include_router(auth_router)
@@ -19,3 +20,4 @@ router.include_router(events_router)
 router.include_router(analytics_router)
 router.include_router(apps_router)
 router.include_router(config_router)
+router.include_router(audit_router)

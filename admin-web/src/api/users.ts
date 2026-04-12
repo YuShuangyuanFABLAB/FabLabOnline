@@ -8,9 +8,9 @@ export const usersApi = {
     return client.get(`/users/${id}`)
   },
   updateStatus(id: string, status: string) {
-    return client.put(`/users/${id}/status`, null, { params: { status } })
+    return client.put(`/users/${id}/status`, { status })
   },
   assignRole(id: string, roleId: string, scopeId = '*') {
-    return client.post(`/users/${id}/roles`, null, { params: { role_id: roleId, scope_id: scopeId } })
+    return client.post(`/users/${id}/roles`, { role_id: roleId, scope_id: scopeId })
   },
 }

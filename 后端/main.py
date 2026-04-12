@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -30,9 +32,21 @@ app.include_router(v1_router)
 @app.on_event("startup")
 async def startup_event():
     import asyncio
-    from domains.events.store import _event_writer_loop, ensure_future_partitions
-    asyncio.create_task(_event_writer_loop())
+    from domains.events.store import start_writer_loop, ensure_future_partitions
+    start_writer_loop()
     await ensure_future_partitions()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    from domains.events.store import drain_queue, _writer_task
+    await drain_queue()
+    if _writer_task and not _writer_task.done():
+        _writer_task.cancel()
+        try:
+            await _writer_task
+        except asyncio.CancelledError:
+            pass
 
 
 @app.get("/health")

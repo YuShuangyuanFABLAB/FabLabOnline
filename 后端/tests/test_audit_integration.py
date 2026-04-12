@@ -39,7 +39,10 @@ class TestConfigAuditLog:
             mock_policy.return_value = mock_policy_inst
 
             result = await update_config(
-                request, scope="global", scope_id=None, key="test_key", value={"new": "data"}
+                request, body=MagicMock(
+                    scope="global", scope_id=None, key="test_key",
+                    value={"new": "data"},
+                )
             )
 
             assert result["success"] is True
@@ -95,7 +98,9 @@ class TestAppAuditLog:
             mock_policy.return_value = mock_policy_inst
 
             result = await register_app(
-                request, app_id="test-app", name="Test App", app_key="test_key"
+                request, body=MagicMock(
+                    app_id="test-app", name="Test App", app_key="test_key",
+                )
             )
 
             assert result["success"] is True
@@ -147,7 +152,7 @@ class TestAuditIncludesIpAddress:
             mock_sm_inst.invalidate_user_status = AsyncMock()
             mock_sm_cls.return_value = mock_sm_inst
 
-            result = await update_user_status("user_001", request, status="inactive")
+            result = await update_user_status("user_001", request, body=MagicMock(status="inactive"))
 
             assert result["success"] is True
             mock_audit.assert_called_once()

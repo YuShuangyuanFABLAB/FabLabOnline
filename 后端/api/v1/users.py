@@ -1,5 +1,6 @@
 """Users API — 用户管理"""
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from infrastructure.database import async_session
@@ -8,6 +9,17 @@ from domains.access.policy import get_policy, PermissionContext
 from domains.access.audit import write_audit_log
 from domains.access.roles import assign_role, get_user_roles
 from domains.identity.session_manager import SessionManager
+
+router = APIRouter(prefix="/users", tags=["users"])
+
+
+class UpdateUserStatusRequest(BaseModel):
+    status: str = Field(..., min_length=1, max_length=16)
+
+
+class AssignRoleRequest(BaseModel):
+    role_id: str = Field(..., min_length=1, max_length=64)
+    scope_id: str = Field("*", max_length=64)
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -60,7 +72,7 @@ async def get_user(user_id: str, request: Request):
 
 
 @router.put("/{user_id}/status")
-async def update_user_status(user_id: str, request: Request, status: str):
+async def update_user_status(user_id: str, request: Request, body: UpdateUserStatusRequest):
     """启用/禁用用户"""
     tenant_id = request.state.tenant_id
     policy = get_policy()
@@ -81,7 +93,7 @@ async def update_user_status(user_id: str, request: Request, status: str):
             raise HTTPException(status_code=404, detail="User not found")
 
         old_status = user.status
-        user.status = status
+        user.status = body.status
         await db.commit()
 
         # 写时主动失效 Redis 缓存
@@ -94,7 +106,7 @@ async def update_user_status(user_id: str, request: Request, status: str):
             action="update",
             resource_type="user",
             resource_id=user_id,
-            changes={"status": {"old": old_status, "new": status}},
+            changes={"status": {"old": old_status, "new": body.status}},
             ip_address=request.client.host if request.client else None,
             user_agent=request.headers.get("user-agent"),
         )
@@ -103,14 +115,14 @@ async def update_user_status(user_id: str, request: Request, status: str):
 
 
 @router.post("/{user_id}/roles")
-async def assign_user_role(user_id: str, request: Request, role_id: str, scope_id: str = "*"):
+async def assign_user_role(user_id: str, request: Request, body: AssignRoleRequest):
     tenant_id = request.state.tenant_id
     policy = get_policy()
     ctx = PermissionContext(tenant_id=tenant_id)
     if not await policy.check_permission(request.state.user_id, "update", "role", ctx):
         raise HTTPException(status_code=403, detail="Permission denied")
 
-    ur = await assign_role(user_id, role_id, scope_id)
+    ur = await assign_role(user_id, body.role_id, body.scope_id)
 
     await write_audit_log(
         tenant_id=tenant_id,
@@ -118,7 +130,7 @@ async def assign_user_role(user_id: str, request: Request, role_id: str, scope_i
         action="update",
         resource_type="user",
         resource_id=user_id,
-        changes={"role_assigned": {"role_id": role_id, "scope_id": scope_id}},
+        changes={"role_assigned": {"role_id": body.role_id, "scope_id": body.scope_id}},
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent"),
     )

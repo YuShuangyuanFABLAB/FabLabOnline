@@ -3,6 +3,7 @@ import hashlib
 import secrets
 
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from infrastructure.database import async_session
@@ -11,6 +12,12 @@ from domains.access.policy import get_policy, PermissionContext
 from domains.access.audit import write_audit_log
 
 router = APIRouter(prefix="/apps", tags=["apps"])
+
+
+class RegisterAppRequest(BaseModel):
+    app_id: str = Field(..., min_length=1, max_length=64)
+    name: str = Field(..., min_length=1, max_length=128)
+    app_key: str = Field(..., min_length=1, max_length=128)
 
 
 @router.get("")
@@ -31,7 +38,7 @@ async def list_apps(request: Request):
 
 
 @router.post("")
-async def register_app(request: Request, app_id: str, name: str, app_key: str):
+async def register_app(request: Request, body: RegisterAppRequest):
     tenant_id = request.state.tenant_id
     policy = get_policy()
     ctx = PermissionContext(tenant_id=tenant_id)
@@ -40,9 +47,9 @@ async def register_app(request: Request, app_id: str, name: str, app_key: str):
 
     async with async_session() as db:
         app = App(
-            id=app_id,
-            name=name,
-            app_key=app_key,
+            id=body.app_id,
+            name=body.name,
+            app_key=body.app_key,
             app_secret_hash=hashlib.sha256(secrets.token_hex(32).encode()).hexdigest(),
         )
         db.add(app)
@@ -54,8 +61,8 @@ async def register_app(request: Request, app_id: str, name: str, app_key: str):
         user_id=request.state.user_id,
         action="create",
         resource_type="app",
-        resource_id=app_id,
-        changes={"name": name, "app_key": app_key},
+        resource_id=body.app_id,
+        changes={"name": body.name, "app_key": body.app_key},
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent"),
     )

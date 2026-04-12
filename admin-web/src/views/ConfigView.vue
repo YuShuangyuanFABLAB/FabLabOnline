@@ -41,7 +41,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Edit } from '@element-plus/icons-vue'
-import client from '@/api/client'
+import { configApi } from '@/api/config'
 
 interface ConfigRow {
   key: string
@@ -58,7 +58,7 @@ const form = ref({ key: '', value: '' })
 async function fetchConfigs() {
   loading.value = true
   try {
-    const { data } = await client.get('/config')
+    const { data } = await configApi.list()
     configs.value = data.data?.items || data.data || []
   } catch {
     configs.value = []
@@ -77,7 +77,7 @@ function editConfig(row: ConfigRow) {
 
 async function handleSave() {
   try {
-    await client.put(`/config/${form.value.key}`, { value: form.value.value })
+    await configApi.update({ scope: 'global', scope_id: null, key: form.value.key, value: form.value.value })
     ElMessage.success('保存成功')
     dialogVisible.value = false
     await fetchConfigs()

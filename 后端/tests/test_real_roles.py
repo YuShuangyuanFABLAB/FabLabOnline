@@ -134,7 +134,7 @@ class TestHeartbeatReturnsRealRoles:
 
             result = await heartbeat(request)
 
-            assert result["data"]["roles"] == ["super_admin", "admin"]
+            assert set(result["data"]["roles"]) == {"super_admin", "admin"}
             mock_roles.assert_called_once_with("admin_001")
 
     @pytest.mark.asyncio

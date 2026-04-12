@@ -8,7 +8,6 @@ class Campus(Base, TenantModel):
     __tablename__ = "campuses"
 
     id = Column(String(64), primary_key=True)
-    tenant_id = Column(String(64), nullable=False, index=True)
     name = Column(String(128), nullable=False)
     parent_id = Column(String(64))
     campus_level = Column(String(16), server_default="branch")
