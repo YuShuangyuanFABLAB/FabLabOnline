@@ -272,12 +272,28 @@
 | 13 | M7: 添加 shutdown 事件处理 | MEDIUM | ✅ 已完成 |
 | 14 | M4: 前端缺失 API 模块封装 | MEDIUM | ✅ 已完成 |
 
+### Phase 4：安全加固 + 前后端对齐 + 基础设施 ✅ 已完成（2026-04-14）
+
+基于 Agent Teams 4 人并行审查报告（43 项发现）。详见 `2026-04-13-agent-teams-review.md`。
+
+**Phase 4A — 快速修复**: C1 SameSite strict, C3 密码明文, H1 重复 router, H9 token 泄露, H8 PBKDF2
+
+**Phase 4B — 安全加固**: C2/H7 JWT 密钥校验, H2 app_secret 返回, H3 analytics 权限
+
+**Phase 4C — 前后端对齐**: H6 roles permissions, H5 apps status, H4 roles CRUD
+
+**Phase 4D — 基础设施**: C4 SQL 注入防护, M1 JSON 响应, M2 心跳去重, M9 默认值, M14 Redis 池, H10 AOF, H11 SDK 版本
+
+最终: **173 tests, 0 failures, CRITICAL/HIGH 全部清零**
+
 ---
 
 ## 七、验证方式
 
-1. ✅ 后端 `python -m pytest -v` — 134 passed（Phase 2）
+1. ✅ 后端 `python -m pytest -v` — 173 passed（Phase 4）
 2. ✅ 前端 `npx vitest run` — 5 passed
 3. ✅ Docker 5 容器健康（Phase 1 验证）
 4. ✅ 手动验证：登录 → Cookie 中有 token → localStorage 无 token → 刷新页面仍正常
-5. ⬜ 手动验证：非 super_admin 用户菜单过滤正确（需创建测试用户）
+5. ✅ Pyflakes clean — 0 warnings（仅 `import models` 不可消除的 false positive）
+6. ⬜ 手动验证：非 super_admin 用户菜单过滤正确（需创建测试用户）
+7. ⬜ Docker 全流程验证（需重建镜像）

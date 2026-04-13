@@ -1,8 +1,8 @@
 # 法贝实验室管理平台 — 项目状态
 
-> 最后更新: 2026-04-13
+> 最后更新: 2026-04-14
 > **GitHub**: `YuShuangyuanFABLAB/FabLabOnline`
-> **当前阶段**: 代码审计 21 项全部修复，147 tests，产品级质量
+> **当前阶段**: Phase 4 全部完成，173 tests，审计 CRITICAL/HIGH 全部清零
 
 ---
 
@@ -18,6 +18,8 @@
 | Session 03 审计+UI | `后端/docs/sessions/2026-04-11-session-03-code-audit.md` |
 | Session 04 Phase 2 | `后端/docs/sessions/2026-04-12-session-04-phase2-security.md` |
 | Session 05 Phase 3 | `后端/docs/sessions/2026-04-12-session-05-phase3-quality.md` |
+| Session 06 Phase 4 | `后端/docs/sessions/2026-04-14-session-06-phase4-hardening.md` |
+| Agent Teams 审查 | `后端/docs/superpowers/audits/2026-04-13-agent-teams-review.md` — 43 项发现 |
 
 ---
 
@@ -61,16 +63,43 @@
 | M8 | Pydantic 请求校验 | campuses.py, apps.py, config.py, users.py |
 | M4 | 前端 API 封装 + 审计端点 | audit.py 端点 + audit/apps/config.ts |
 
-### 未修复（LOW 风险）
+### Phase 4 — 安全加固 + 前后端对齐 + 基础设施 ✅（2026-04-14）
+| ID | 修复 | 文件 |
+|----|------|------|
+| C1 | Cookie SameSite strict | auth.py |
+| C3 | 删除密码明文输出 | init_db.py |
+| C4 | tenant_id SQL 注入白名单校验 | events.py, analytics.py |
+| H1 | 删除重复 router | users.py |
+| H2 | apps 返回 app_secret | apps.py |
+| H3 | analytics 权限校验 | analytics.py |
+| H4 | POST/PUT /roles CRUD | roles.py |
+| H5 | PUT /apps/{id}/status | apps.py |
+| H6 | GET /roles 返回 permissions | roles.py |
+| H7 | JWT 密钥生产环境校验 | settings.py |
+| H8 | manage.py PBKDF2 | manage.py |
+| H9 | 删除 callback token 泄露 | auth.py |
+| H10 | Redis AOF 持久化 | docker-compose.yml |
+| H11 | SDK 版本号 | client.py |
+| M1 | 登录响应 json.dumps | auth.py |
+| M2 | 心跳续签去重 | auth.py |
+| M9 | Role 默认值对齐 | models/role.py |
+| M14 | Redis 连接池 | redis.py |
+
+### 未修复（LOW / 生产部署时处理）
 | ID | 问题 | 说明 |
 |----|------|------|
-| L1 | API 响应格式不统一 | 缺少 `success` 字段 |
-| L2 | `_INIT_DEFAULTS` + 自定义 `__init__` | 非标准 SQLAlchemy 用法 |
-| L3 | Redis 无密码保护 | 内网可接受 |
-| L4 | 日志配置在 import 时执行 | 测试中可能干扰 |
-| L5 | 前端少量 `any` 类型残留 | — |
-| M2 | 事件分区表无初始分区 | 已由 ensure_future_partitions 自动处理 |
 | M3 | 缺少 HTTPS/TLS | 需 Let's Encrypt / certbot |
+| M4 | Cookie Secure 生产环境 | 需 HTTPS 部署后生效 |
+| M5 | 多环境配置分离 | pydantic-settings 多环境 |
+| M6 | 前端 TypeScript 接口 | 缺响应类型定义 |
+| M7 | 前端错误处理 | 不区分 403/404/网络错误 |
+| M8 | 前端搜索用后端 | 当前仅过滤已加载页 |
+| M10 | TenantModel.tenant_query 未使用 | 安全查询方法 |
+| M11 | 缺 OpenAPI 文档自动化 | 前端可用 openapi-typescript |
+| M12 | 分区创建改定时任务 | 当前依赖应用启动 |
+| M13 | 缺 i18n | 字符串硬编码中文 |
+| M15 | 通用速率限制中间件 | 仅登录有限速 |
+| M16 | 审计日志 user_role 未填充 | 多数调用方传 None |
 
 ---
 
@@ -93,25 +122,29 @@ Task 8: PPT 集成 + Docker 部署          ✅ Alembic 迁移 + 健康检查
 
 | 类别 | 数量 |
 |------|------|
-| 后端 | 142 passed |
+| 后端 | 173 passed |
 | 前端 | 5 passed + 构建成功 |
-| **总计** | **147 tests** |
+| **总计** | **178 tests** |
 
 ### 后端测试文件清单
 
-| 文件 | 测试数 | 覆盖 |
-|------|--------|------|
-| tests/api/test_spec_alignment.py | — | API 规范对齐 |
-| tests/test_cookie_auth.py | — | HttpOnly Cookie 认证 |
-| tests/test_password_hash.py | — | PBKDF2 密码哈希 |
-| tests/test_login_rate_limit.py | — | 登录限流 |
-| tests/test_cors.py | — | CORS 配置 |
-| tests/test_real_roles.py | — | 真实角色查询 |
-| tests/test_audit_integration.py | — | 审计日志集成 |
-| tests/test_init_db_refactor.py | — | init_db 重构 |
-| tests/test_roles_delete.py | — | 系统角色删除保护 |
-| tests/test_graceful_shutdown.py | — | 优雅关闭 |
-| tests/test_pydantic_validation.py | — | Pydantic 请求校验 |
+| 文件 | 覆盖 |
+|------|------|
+| tests/api/test_spec_alignment.py | API 规范对齐 |
+| tests/test_cookie_auth.py | HttpOnly Cookie 认证 |
+| tests/test_password_hash.py | PBKDF2 密码哈希 |
+| tests/test_login_rate_limit.py | 登录限流 |
+| tests/test_cors.py | CORS 配置 |
+| tests/test_real_roles.py | 真实角色查询 |
+| tests/test_audit_integration.py | 审计日志集成 |
+| tests/test_init_db_refactor.py | init_db 重构 |
+| tests/test_roles_delete.py | 系统角色删除保护 |
+| tests/test_graceful_shutdown.py | 优雅关闭 |
+| tests/test_pydantic_validation.py | Pydantic 请求校验 |
+| tests/test_phase4a_fixes.py | Phase 4A 快速修复 |
+| tests/test_phase4b_fixes.py | Phase 4B 安全加固 |
+| tests/test_phase4c_fixes.py | Phase 4C 前后端对齐 |
+| tests/test_phase4d_fixes.py | Phase 4D 安全+基础设施 |
 
 ---
 
@@ -147,8 +180,8 @@ API 写操作 (POST/PUT/DELETE)
 
 ## 七、下一步
 
-1. **Docker 重新构建验证全流程** — `docker compose up --build`
-2. **创建非 super_admin 测试用户** — 验证角色过滤是否正确
-3. **生产环境部署准备** — HTTPS/TLS (Let's Encrypt)、微信 OAuth 配置
+1. **Docker 全流程验证** — `docker compose up --build` 验证 5 服务启动
+2. **创建非 super_admin 测试用户** — 验证角色过滤和权限校验
+3. **生产环境部署** — HTTPS/TLS (Let's Encrypt)、微信 OAuth 配置、JWT_SECRET_KEY 强密钥
 4. **M3: HTTPS/TLS 配置** — nginx HTTPS 模板 + certbot
-5. **L1: 统一 API 响应格式** — `{"success": true, "data": ...}` 封装
+5. **前端 TypeScript 接口定义** — API 响应类型安全
