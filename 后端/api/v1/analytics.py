@@ -1,4 +1,5 @@
 """Analytics API — 看板 + 校区统计 + 用户活动"""
+import re
 from datetime import date
 
 from fastapi import APIRouter, HTTPException, Request
@@ -7,6 +8,8 @@ from domains.access.policy import get_policy, PermissionContext
 from domains.analytics.dashboard import get_dashboard_data, get_usage_by_campus
 from infrastructure.database import async_session
 from sqlalchemy import text
+
+_TENANT_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_-]+$')
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -37,6 +40,8 @@ async def usage_by_campus(request: Request, start: date, end: date):
 
 async def get_user_activity(tenant_id: str, user_id: str):
     """查询单用户活动日志"""
+    if not _TENANT_ID_PATTERN.match(tenant_id):
+        raise HTTPException(status_code=400, detail="Invalid tenant_id format")
     async with async_session() as db:
         table = f"events_{tenant_id}"
         sql = text(

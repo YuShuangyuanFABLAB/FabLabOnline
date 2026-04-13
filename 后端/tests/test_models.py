@@ -50,7 +50,7 @@ class TestRoleModel:
         r = Role(id="super_admin", name="super_admin", display_name="超级管理员", level=0)
         assert r.id == "super_admin"
         assert r.level == 0
-        assert r.is_system is True
+        assert r.is_system is False
 
     def test_user_role_scope_id_default(self):
         """scope_id 默认值为 '*'（非 NULL，避免联合主键 bug）"""

@@ -27,7 +27,12 @@ class TestSameSiteStrict:
         mock_token.create_token = MagicMock(return_value="jwt-token")
         mock_session.cache_user_status = AsyncMock()
 
-        user = MagicMock(id="admin", name="管理员", tenant_id="default", status="active")
+        user = MagicMock()
+        user.id = "admin"
+        user.name = "管理员"
+        user.tenant_id = "default"
+        user.status = "active"
+        user.deleted_at = None
         mock_result = MagicMock()
         mock_result.scalar_one_or_none = MagicMock(return_value=user)
 

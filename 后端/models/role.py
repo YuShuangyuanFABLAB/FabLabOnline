@@ -14,7 +14,7 @@ class Role(Base):
     level = Column(Integer, nullable=False, default=0)
     is_system = Column(Boolean, server_default="false")
 
-    _INIT_DEFAULTS = {"is_system": True}
+    _INIT_DEFAULTS = {"is_system": False}
 
     def __init__(self, **kwargs):
         for key, val in self._INIT_DEFAULTS.items():

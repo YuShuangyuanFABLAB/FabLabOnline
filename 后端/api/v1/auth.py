@@ -90,10 +90,10 @@ async def password_login(body: LoginRequest):
 
     # 通过 HttpOnly Cookie 传递 token（不放入 response body）
     response = Response(
-        content='{"data":{"user":{"id":"'
-                + user.id + '","name":"'
-                + user.name + '","tenant_id":"'
-                + user.tenant_id + '","roles":' + json.dumps(role_ids) + '}}}',
+        content=json.dumps({"data": {"user": {
+            "id": user.id, "name": user.name,
+            "tenant_id": user.tenant_id, "roles": role_ids,
+        }}}),
         media_type="application/json",
         status_code=200,
     )
@@ -170,6 +170,18 @@ async def wechat_callback(code: str, state: str):
     }
 
 
+def _maybe_renew_token(raw_token: str, user_id: str, tenant_id: str) -> str | None:
+    """检查 Token 是否即将过期，若 < 24h 则自动续签"""
+    payload = token_mgr.verify_token(raw_token)
+    if not payload:
+        return None
+    exp = payload.get("exp", 0)
+    remaining = exp - time.time()
+    if 0 < remaining < 86400:
+        return token_mgr.create_token(user_id=user_id, tenant_id=tenant_id)
+    return None
+
+
 @router.post("/heartbeat")
 async def heartbeat(request: Request):
     """心跳保活 — 滑动过期 + 恢复用户信息"""
@@ -193,21 +205,9 @@ async def heartbeat(request: Request):
     token = None
     auth_header = request.headers.get("Authorization", "")
     if auth_header.startswith("Bearer "):
-        payload = token_mgr.verify_token(auth_header[7:])
-        if payload:
-            exp = payload.get("exp", 0)
-            now = time.time()
-            remaining = exp - now
-            if 0 < remaining < 86400:
-                token = token_mgr.create_token(user_id=user_id, tenant_id=tenant_id)
+        token = _maybe_renew_token(auth_header[7:], user_id, tenant_id)
     elif "token" in request.cookies:
-        payload = token_mgr.verify_token(request.cookies["token"])
-        if payload:
-            exp = payload.get("exp", 0)
-            now = time.time()
-            remaining = exp - now
-            if 0 < remaining < 86400:
-                token = token_mgr.create_token(user_id=user_id, tenant_id=tenant_id)
+        token = _maybe_renew_token(request.cookies["token"], user_id, tenant_id)
 
     # 查询真实角色
     user_roles = await get_user_roles(user_id)
@@ -239,7 +239,7 @@ async def logout(request: Request):
     """退出登录"""
     user_id = getattr(request.state, "user_id", None)
     response = Response(
-        content='{"data":{"logged_out":true,"user_id":"' + str(user_id) + '"}}',
+        content=json.dumps({"data": {"logged_out": True, "user_id": str(user_id)}}),
         media_type="application/json",
     )
     response.delete_cookie(key="token")

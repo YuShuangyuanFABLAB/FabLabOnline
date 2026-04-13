@@ -1,4 +1,6 @@
 """FabLab Platform 客户端 — 统一接入层"""
+__version__ = "0.1.0"
+
 from fablab_sdk.auth import AuthManager
 from fablab_sdk.tracking import EventReporter
 
@@ -19,6 +21,7 @@ class _APIWrapper:
         if token:
             headers["Authorization"] = f"Bearer {token}"
         headers["X-App-ID"] = self._client.app_key
+        headers["X-SDK-Version"] = __version__
 
         async with httpx.AsyncClient() as http:
             resp = await http.post(

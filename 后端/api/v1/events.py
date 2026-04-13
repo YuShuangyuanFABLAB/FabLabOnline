@@ -1,5 +1,7 @@
 """Events API — 批量上报 + 管理查询"""
-from fastapi import APIRouter, Request, BackgroundTasks, Query
+import re
+
+from fastapi import APIRouter, HTTPException, Request, BackgroundTasks, Query
 
 from domains.events.store import enqueue_events
 from domains.access.audit import write_audit_log
@@ -7,6 +9,13 @@ from infrastructure.database import async_session
 from sqlalchemy import text
 
 router = APIRouter(prefix="/events", tags=["events"])
+
+_TENANT_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_-]+$')
+
+
+def _validate_tenant_id(tenant_id: str) -> bool:
+    """校验 tenant_id 格式 — 防止 SQL 注入"""
+    return bool(_TENANT_ID_PATTERN.match(tenant_id))
 
 
 @router.post("/batch")
@@ -34,6 +43,8 @@ async def batch_report(request: Request, events: list[dict], background_tasks: B
 
 async def get_events(tenant_id: str, event_type: str = None, limit: int = 20):
     """查询事件列表"""
+    if not _validate_tenant_id(tenant_id):
+        raise HTTPException(status_code=400, detail="Invalid tenant_id format")
     async with async_session() as db:
         table = f"events_{tenant_id}"
         sql = f"SELECT * FROM {table}"
