@@ -1,19 +1,29 @@
 # 法贝实验室管理系统 — 项目记忆
 
+> 最后更新: 2026-04-13
+
 ## 项目概述
 
-法贝实验室统一管理平台 — 教育 SaaS 平台底座，管理 PPT 软件授权、用户、校区、使用追踪
+法贝实验室统一管理平台 — 教育 SaaS 平台底座，管理 PPT 软件授权、用户、校区、使用追踪。
+
+**当前状态**: 代码审计 21 项全部修复，147 tests，产品级质量。
 
 ## 关键文档
 
-- [项目状态与上下文](platform-project-context.md) — 当前阶段、v1.4 改进、下一步行动
+- [项目状态与上下文](platform-project-context.md) — 当前阶段、审计结果、下一步行动
 - [设计文档 v1.1](../docs/superpowers/specs/2026-04-03-platform-foundation-design.md) — 5轮AI评审后冻结
 - [实现计划 v1.4](../docs/superpowers/plans/2026-04-03-phase1-implementation.md) — 8 Task, 7轮评审38项修正
-- [代码审计报告](../docs/superpowers/audits/2026-04-11-code-audit.md) — 21 项发现，Phase 1+2 已修复
-- [Session 01](../docs/sessions/2026-04-03-session-01-design-review.md) — 设计评审全记录
-- [Session 02](../docs/sessions/2026-04-03-session-02-plan-review.md) — 计划评审修正
-- [Session 03](../docs/sessions/2026-04-11-session-03-code-audit.md) — UI 重设计 + Docker 修复 + 代码审计
-- [Session 04](../docs/sessions/2026-04-12-session-04-phase2-security.md) — Phase 2 安全修复
+- [代码审计报告](../docs/superpowers/audits/2026-04-11-code-audit.md) — 21 项发现，Phase 1+2+3 全部修复
+
+## Session 记录
+
+| Session | 日期 | 内容 |
+|---------|------|------|
+| [01](../docs/sessions/2026-04-03-session-01-design-review.md) | 04-03 | 设计评审全记录 |
+| [02](../docs/sessions/2026-04-03-session-02-plan-review.md) | 04-03 | 计划评审修正 |
+| [03](../docs/sessions/2026-04-11-session-03-code-audit.md) | 04-11 | UI 重设计 + Docker 修复 + 代码审计 |
+| [04](../docs/sessions/2026-04-12-session-04-phase2-security.md) | 04-12 | Phase 2 安全修复（H4+H2+H3） |
+| [05](../docs/sessions/2026-04-12-session-05-phase3-quality.md) | 04-12 | Phase 3 工程质量（M5+M6+M7+M8+M4） |
 
 ## 技术栈
 
@@ -24,25 +34,27 @@ FastAPI + PostgreSQL 15 + Redis 7 + Vue 3 + Element Plus + PyQt5 + Docker Compos
 ### Phase 1 开发（2026-04-03 ~ 04-09）
 8 个 Task 全部完成（105+4+16+13=138 tests），v1.0.0 发布
 
-### Phase 1 安全加固（2026-04-12 Session 03→04 前半）
+### Phase 1 安全加固（2026-04-12）
 - C1: Token → HttpOnly Cookie
 - C2: SHA-256 → PBKDF2-SHA256 480000 次
 - C3: 登录限流 5 次/15分钟
 - H5: CORS 配置
+- H1: Cookie + heartbeat 路由守卫
 - 后端 124 + 前端 5 = 129 tests
 
-### Phase 2 安全修复（2026-04-12 Session 04）
-- H4: 登录和心跳返回真实角色（调用 get_user_roles）
-- H2: 审计日志全覆盖（config/apps 补全 + ip_address/user_agent）
-- H3: init_db 检查 alembic_version fallback + Dockerfile 加入 alembic
+### Phase 2 安全修复（2026-04-12）
+- H4: 登录和心跳返回真实角色（get_user_roles）
+- H2: 审计日志全覆盖（ip_address/user_agent）
+- H3: Alembic 迁移 + init_db fallback
 - 后端 134 + 前端 5 = 139 tests
 
-### Phase 3 待执行（MEDIUM）
-- M5: tenant_id 重复声明
+### Phase 3 工程质量（2026-04-12）
+- M5: 消除 tenant_id 重复声明
 - M6: 禁止删除系统角色
-- M7: shutdown 事件处理
-- M8: Pydantic 请求校验
-- M4: 前端 API 模块封装
+- M7: 优雅关闭（drain_queue + shutdown_event）
+- M8: Pydantic 请求校验（4 个文件）
+- M4: 前端 API 模块封装 + 后端审计端点
+- 后端 142 + 前端 5 = 147 tests
 
 ## 评审历史
 

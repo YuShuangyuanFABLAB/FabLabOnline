@@ -7,7 +7,7 @@ from infrastructure.database import async_session
 from models.user import User
 from domains.access.policy import get_policy, PermissionContext
 from domains.access.audit import write_audit_log
-from domains.access.roles import assign_role, get_user_roles
+from domains.access.roles import assign_role
 from domains.identity.session_manager import SessionManager
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -20,8 +20,6 @@ class UpdateUserStatusRequest(BaseModel):
 class AssignRoleRequest(BaseModel):
     role_id: str = Field(..., min_length=1, max_length=64)
     scope_id: str = Field("*", max_length=64)
-
-router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("")

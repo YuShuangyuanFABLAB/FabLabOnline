@@ -164,7 +164,6 @@ async def _single_insert_with_partition(event: dict):
 
 async def _ensure_current_month_partition(db, timestamp_str: str):
     """自动创建当月分区"""
-    from calendar import monthrange
     try:
         ts = datetime.fromisoformat(timestamp_str) if isinstance(timestamp_str, str) else timestamp_str
     except Exception:

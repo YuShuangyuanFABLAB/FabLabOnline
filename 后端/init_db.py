@@ -1,5 +1,6 @@
 """数据库初始化 — 建表 + 种子数据"""
 import asyncio
+import hashlib
 import json
 from datetime import datetime, timezone
 
@@ -170,7 +171,7 @@ async def seed_data():
             })
 
         await db.commit()
-        print("Seed data inserted: admin / admin123")
+        print("Seed data inserted successfully")
 
 
 async def _has_alembic_version() -> bool:

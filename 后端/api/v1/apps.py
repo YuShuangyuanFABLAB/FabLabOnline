@@ -45,12 +45,15 @@ async def register_app(request: Request, body: RegisterAppRequest):
     if not await policy.check_permission(request.state.user_id, "create", "app", ctx):
         raise HTTPException(status_code=403, detail="Permission denied")
 
+    raw_secret = secrets.token_hex(32)
+    secret_hash = hashlib.sha256(raw_secret.encode()).hexdigest()
+
     async with async_session() as db:
         app = App(
             id=body.app_id,
             name=body.name,
             app_key=body.app_key,
-            app_secret_hash=hashlib.sha256(secrets.token_hex(32).encode()).hexdigest(),
+            app_secret_hash=secret_hash,
         )
         db.add(app)
         await db.commit()
@@ -67,4 +70,7 @@ async def register_app(request: Request, body: RegisterAppRequest):
         user_agent=request.headers.get("user-agent"),
     )
 
-    return {"success": True, "data": {"id": app.id, "name": app.name, "app_key": app.app_key}}
+    return {"success": True, "data": {
+        "id": app.id, "name": app.name, "app_key": app.app_key,
+        "app_secret": raw_secret,
+    }}

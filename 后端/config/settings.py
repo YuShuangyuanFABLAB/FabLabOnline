@@ -29,5 +29,17 @@ class Settings(BaseSettings):
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
+    def validate_production(self) -> None:
+        """生产环境配置校验 — 应在应用启动时调用"""
+        if not self.DEBUG:
+            if self.JWT_SECRET_KEY == "change-me-in-production":
+                raise ValueError(
+                    "JWT_SECRET_KEY 必须在生产环境中修改，不能使用默认值"
+                )
+            if len(self.JWT_SECRET_KEY) < 32:
+                raise ValueError(
+                    f"JWT_SECRET_KEY 长度不足 32 字符（当前 {len(self.JWT_SECRET_KEY)} 字符）"
+                )
+
 
 settings = Settings()

@@ -102,11 +102,10 @@ async def password_login(body: LoginRequest):
         value=token,
         httponly=True,
         secure=not settings.DEBUG,  # 开发模式不要求 HTTPS
-        samesite="lax",
+        samesite="strict",
         max_age=settings.JWT_EXPIRE_DAYS * 86400,
     )
     return response
-
 
 async def _record_failure(key: str):
     """记录一次登录失败，设置 TTL"""
@@ -166,7 +165,6 @@ async def wechat_callback(code: str, state: str):
     return {
         "data": {
             "status": "authenticated",
-            "token": token,
             "user": {"id": user.id, "name": user.name},
         },
     }
@@ -229,7 +227,7 @@ async def heartbeat(request: Request):
         resp.set_cookie(
             key="token", value=token,
             httponly=True, secure=not settings.DEBUG,
-            samesite="lax", max_age=settings.JWT_EXPIRE_DAYS * 86400,
+            samesite="strict", max_age=settings.JWT_EXPIRE_DAYS * 86400,
         )
         return resp
 

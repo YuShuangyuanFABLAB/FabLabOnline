@@ -1,7 +1,7 @@
 """测试优雅关闭 — M7 TDD"""
 import asyncio
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 
 @pytest.fixture(autouse=True)
@@ -40,8 +40,9 @@ class TestGracefulShutdown:
         """shutdown 处理器取消后台任务"""
         from main import startup_event
 
-        # 模拟 startup 创建了后台任务
-        with patch("domains.events.store.ensure_future_partitions", new_callable=AsyncMock):
+        # 模拟 startup 创建了后台任务（跳过生产环境校验）
+        with patch("config.settings.Settings.validate_production"), \
+             patch("domains.events.store.ensure_future_partitions", new_callable=AsyncMock):
             await startup_event()
 
         # 验证后台任务存在

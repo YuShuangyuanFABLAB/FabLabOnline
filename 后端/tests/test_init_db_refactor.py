@@ -1,6 +1,6 @@
 """测试 init_db 重构 + Alembic — H3 TDD"""
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch, call
+from unittest.mock import AsyncMock, MagicMock, patch
 
 
 class TestSeedDataSkipsWhenPopulated:

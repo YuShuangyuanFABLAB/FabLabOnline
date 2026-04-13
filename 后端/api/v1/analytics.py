@@ -52,5 +52,10 @@ async def get_user_activity(tenant_id: str, user_id: str):
 async def user_activity(user_id: str, request: Request):
     """单用户活动日志"""
     tenant_id = request.state.tenant_id
+    policy = get_policy()
+    ctx = PermissionContext(tenant_id=tenant_id)
+    if not await policy.check_permission(request.state.user_id, "read", "analytics", ctx):
+        raise HTTPException(status_code=403, detail="Permission denied")
+
     data = await get_user_activity(tenant_id, user_id)
     return {"success": True, "data": data}

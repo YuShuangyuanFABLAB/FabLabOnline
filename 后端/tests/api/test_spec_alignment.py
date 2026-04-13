@@ -175,8 +175,12 @@ class TestUserActivityEndpoint:
         request.state.user_id = "admin_001"
         request.state.tenant_id = "default"
 
-        with patch("api.v1.analytics.get_user_activity", new_callable=AsyncMock) as mock_get:
+        with patch("api.v1.analytics.get_user_activity", new_callable=AsyncMock) as mock_get, \
+             patch("api.v1.analytics.get_policy") as mock_policy:
             mock_get.return_value = {"events": []}
+            policy = MagicMock()
+            policy.check_permission = AsyncMock(return_value=True)
+            mock_policy.return_value = policy
             result = await user_activity("user_001", request)
             assert result["success"] is True
 
