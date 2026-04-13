@@ -74,3 +74,40 @@ async def register_app(request: Request, body: RegisterAppRequest):
         "id": app.id, "name": app.name, "app_key": app.app_key,
         "app_secret": raw_secret,
     }}
+
+
+@router.put("/{app_id}/status")
+async def toggle_app_status(app_id: str, request: Request, status: str):
+    """切换应用状态（active / disabled）"""
+    tenant_id = request.state.tenant_id
+    policy = get_policy()
+    ctx = PermissionContext(tenant_id=tenant_id)
+    if not await policy.check_permission(request.state.user_id, "update", "app", ctx):
+        raise HTTPException(status_code=403, detail="Permission denied")
+
+    if status not in ("active", "disabled"):
+        raise HTTPException(status_code=400, detail="status 必须为 active 或 disabled")
+
+    async with async_session() as db:
+        result = await db.execute(select(App).where(App.id == app_id))
+        app = result.scalar_one_or_none()
+        if not app:
+            raise HTTPException(status_code=404, detail="应用不存在")
+        old_status = app.status
+        app.status = status
+        await db.commit()
+
+    await write_audit_log(
+        tenant_id=tenant_id,
+        user_id=request.state.user_id,
+        action="update",
+        resource_type="app",
+        resource_id=app_id,
+        changes={"status": {"old": old_status, "new": status}},
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
+
+    return {"success": True, "data": {
+        "id": app.id, "name": app.name, "status": status,
+    }}
