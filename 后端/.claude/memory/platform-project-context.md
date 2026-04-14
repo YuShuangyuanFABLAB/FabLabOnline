@@ -1,8 +1,8 @@
 # 法贝实验室管理平台 — 项目状态
 
-> 最后更新: 2026-04-14
+> 最后更新: 2026-04-15
 > **GitHub**: `YuShuangyuanFABLAB/FabLabOnline`
-> **当前阶段**: Phase 4 全部完成，173 tests，审计 CRITICAL/HIGH 全部清零
+> **当前阶段**: Phase 4 全部完成 + RBAC 验证通过，173 tests
 
 ---
 
@@ -19,6 +19,7 @@
 | Session 04 Phase 2 | `后端/docs/sessions/2026-04-12-session-04-phase2-security.md` |
 | Session 05 Phase 3 | `后端/docs/sessions/2026-04-12-session-05-phase3-quality.md` |
 | Session 06 Phase 4 | `后端/docs/sessions/2026-04-14-session-06-phase4-hardening.md` |
+| Session 07 RBAC 验证 | `后端/docs/sessions/2026-04-15-session-07-rbac-testing.md` |
 | Agent Teams 审查 | `后端/docs/superpowers/audits/2026-04-13-agent-teams-review.md` — 43 项发现 |
 
 ---
@@ -28,7 +29,7 @@
 - **架构**: FastAPI + PostgreSQL + Redis + Vue 3 + Nginx + Docker
 - **认证**: 微信扫码登录 + 密码登录(限流) + JWT HttpOnly Cookie 7天过期
 - **密码**: PBKDF2-SHA256 480000 次迭代 + 随机盐（`domains/identity/password.py`）
-- **权限**: RBAC（4 角色）+ Redis 权限缓存 5min TTL + 真实角色查询 + Pydantic 校验
+- **权限**: RBAC（3 角色: super_admin/admin/teacher）+ Redis 权限缓存 5min TTL + 真实角色查询
 - **事件**: PostgreSQL 分区表 + asyncio.Queue 批量写入 + 优雅关闭
 - **多租户**: TenantModel 防呆基类（无重复声明）
 - **审计**: 全写操作审计日志 + ip_address/user_agent + 查询端点 GET /audit/logs
@@ -84,6 +85,12 @@
 | M2 | 心跳续签去重 | auth.py |
 | M9 | Role 默认值对齐 | models/role.py |
 | M14 | Redis 连接池 | redis.py |
+
+### RBAC 验证 + 角色名对齐 ✅（2026-04-15）
+| 修复 | 文件 |
+|------|------|
+| 创建 teacher1/admin 测试用户 | Docker 环境验证 |
+| 前端角色名 org_admin→admin 对齐 | auth.ts, Layout.vue |
 
 ### 未修复（LOW / 生产部署时处理）
 | ID | 问题 | 说明 |
@@ -148,7 +155,17 @@ Task 8: PPT 集成 + Docker 部署          ✅ Alembic 迁移 + 健康检查
 
 ---
 
-## 六、关键代码路径
+## 六、测试用户
+
+| 用户 | 密码 | 角色 | 用途 |
+|------|------|------|------|
+| `admin` | `admin123` | super_admin | 全权限管理 |
+| `orgadmin1` | `orgadmin123` | admin | 中间权限层（当前 0 权限） |
+| `teacher1` | `teacher123` | teacher | 最低权限 |
+
+---
+
+## 七、关键代码路径
 
 ### 认证流程
 ```
@@ -158,8 +175,15 @@ LoginView.vue → POST /auth/login → auth.py
   → response.set_cookie(token, httponly=True)
   → get_user_roles() → 返回真实角色
 
-router/index.ts → heartbeat 守卫 → GET /auth/heartbeat
-  → 验证 Cookie JWT → 恢复 authStore.user
+router/index.ts → heartbeat 守卫 → POST /auth/heartbeat
+  → 验证 Cookie JWT → 恢复 authStore.user + roles
+```
+
+### 前端菜单过滤
+```
+Layout.vue → showMenu(resource)
+  → authStore.highestRole（优先级: super_admin > admin > teacher）
+  → menuVisibility[resource].includes(role)
 ```
 
 ### 审计日志流程
@@ -178,10 +202,9 @@ API 写操作 (POST/PUT/DELETE)
 
 ---
 
-## 七、下一步
+## 八、下一步
 
-1. **Docker 全流程验证** — `docker compose up --build` 验证 5 服务启动
-2. **创建非 super_admin 测试用户** — 验证角色过滤和权限校验
-3. **生产环境部署** — HTTPS/TLS (Let's Encrypt)、微信 OAuth 配置、JWT_SECRET_KEY 强密钥
-4. **M3: HTTPS/TLS 配置** — nginx HTTPS 模板 + certbot
-5. **前端 TypeScript 接口定义** — API 响应类型安全
+1. **给 admin 角色分配权限** — user:read, campus:read, analytics:read, audit:read
+2. **生产环境部署** — HTTPS/TLS (Let's Encrypt)、微信 OAuth 配置、JWT_SECRET_KEY 强密钥
+3. **M3: HTTPS/TLS 配置** — nginx HTTPS 模板 + certbot
+4. **前端 TypeScript 接口定义** — API 响应类型安全
