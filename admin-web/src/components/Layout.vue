@@ -157,10 +157,10 @@ const pageTitles: Record<string, string> = {
 const pageTitle = computed(() => pageTitles[route.path] ?? '法贝实验室')
 
 const menuVisibility: Record<string, string[]> = {
-  user: ['super_admin', 'org_admin', 'campus_admin'],
-  campus: ['super_admin', 'org_admin', 'campus_admin'],
-  analytics: ['super_admin', 'org_admin', 'campus_admin'],
-  audit: ['super_admin', 'org_admin'],
+  user: ['super_admin', 'admin'],
+  campus: ['super_admin', 'admin'],
+  analytics: ['super_admin', 'admin'],
+  audit: ['super_admin', 'admin'],
   roles: ['super_admin'],
   apps: ['super_admin'],
   config: ['super_admin'],

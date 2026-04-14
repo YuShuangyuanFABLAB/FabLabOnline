@@ -16,7 +16,7 @@ export const useAuthStore = defineStore('auth', () => {
   const roles = computed(() => user.value?.roles ?? [])
 
   const highestRole = computed(() => {
-    const priority = ['super_admin', 'org_admin', 'campus_admin', 'teacher']
+    const priority = ['super_admin', 'admin', 'teacher']
     for (const r of priority) {
       if (roles.value.includes(r)) return r
     }
