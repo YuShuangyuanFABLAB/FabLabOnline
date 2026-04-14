@@ -7,5 +7,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY 后端/ .
 
-# 启动时先运行数据库迁移和种子数据，再启动服务
-CMD ["sh", "-c", "alembic upgrade head && python init_db.py && uvicorn main:app --host 0.0.0.0 --port 8000"]
+# 启动时：尝试 alembic 迁移，失败则由 init_db fallback 建表；然后种子数据 + 启动服务
+CMD ["sh", "-c", "alembic upgrade head || true; python init_db.py && uvicorn main:app --host 0.0.0.0 --port 8000"]
