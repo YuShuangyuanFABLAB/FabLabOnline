@@ -77,7 +77,14 @@ async def seed_data():
 
         now = datetime.now(timezone.utc)
         empty_json = json.dumps({})
-        password_hash = hash_password("admin123")
+
+        # 管理员密码：优先使用环境变量 ADMIN_PASSWORD，否则用默认值
+        from config.settings import settings
+        admin_password = settings.ADMIN_PASSWORD or "admin123"
+        if admin_password == "admin123":
+            print("⚠️  WARNING: Using default admin password 'admin123'. "
+                  "Set ADMIN_PASSWORD in .env for production!")
+        password_hash = hash_password(admin_password)
 
         # ─── tenants (has TimestampMixin: created_at, updated_at) ───
         await db.execute(text("""

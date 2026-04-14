@@ -23,6 +23,15 @@ class Settings(BaseSettings):
     WECHAT_APP_SECRET: str = ""
     WECHAT_REDIRECT_URI: str = ""
 
+    # CORS
+    CORS_ORIGINS: str = ""  # 逗号分隔，如 "https://fablab.com,https://admin.fablab.com"
+
+    # API 文档
+    DOCS_ENABLED: bool = True  # 生产环境应设为 False
+
+    # Admin
+    ADMIN_PASSWORD: str = ""  # 留空则使用默认密码 admin123（不安全！）
+
     # Token / Session
     TOKEN_EXPIRE_DAYS: int = 7
     HEARTBEAT_INTERVAL_SECONDS: int = 300

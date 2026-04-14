@@ -12,14 +12,21 @@ from api.v1.router import router as v1_router
 
 setup_logging(debug=settings.DEBUG)
 
-app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    docs_url="/docs" if settings.DOCS_ENABLED else None,
+    redoc_url="/redoc" if settings.DOCS_ENABLED else None,
+    openapi_url="/openapi.json" if settings.DOCS_ENABLED else None,
+)
 
-# CORS — 限制允许的源（Docker 部署通过 nginx 同源，这里为本地开发和 API 开放做准备）
+# CORS — 使用 CORS_ORIGINS 配置项，生产环境填实际域名
+_cors_origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
+if not _cors_origins:
+    _cors_origins = ["http://localhost", "http://localhost:5173", "http://localhost:80"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.DEBUG
-        if isinstance(settings.DEBUG, list)
-        else ["http://localhost", "http://localhost:5173", "http://localhost:80"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
