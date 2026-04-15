@@ -1,29 +1,34 @@
 # 法贝实验室管理系统 — 生产部署指南
 
-> 本文档手把手教你将系统部署到阿里云/腾讯云服务器，配置 HTTPS 和微信扫码登录。
+> 本文档手把手教你将系统部署上线，配置 HTTPS 和微信扫码登录。
 > 适用于没有任何运维经验的新手。
+>
+> 提供两种部署方式：
+>
+> - **方案 A**：云服务器（阿里云/腾讯云）
+> - **方案 B**：本地笔记本 + Cloudflare Tunnel（免费，推荐新手先试这个）
 
 ---
 
-## 前置准备清单
+# 方案 A：云服务器部署
 
 在开始之前，你需要准备好以下内容：
 
 ### 必须有的
 
-| 项目 | 说明 | 在哪里获取 |
-|------|------|-----------|
-| 云服务器 | 2 核 2GB 内存以上，Ubuntu 22.04 LTS | 阿里云/腾讯云控制台购买 |
-| 域名 | 如 `fablab.example.com` | 阿里云/腾讯云/Cloudflare 购买 |
-| 域名备案 | 国内服务器必须，约 7-20 天 | 云服务商备案系统 |
-| SSH 工具 | 连接服务器用 | Windows: PuTTY / PowerShell 自带 ssh |
+| 项目     | 说明                                | 在哪里获取                           |
+| -------- | ----------------------------------- | ------------------------------------ |
+| 云服务器 | 2 核 2GB 内存以上，Ubuntu 22.04 LTS | 阿里云/腾讯云控制台购买              |
+| 域名     | 如 `fablab.example.com`           | 阿里云/腾讯云/Cloudflare 购买        |
+| 域名备案 | 国内服务器必须，约 7-20 天          | 云服务商备案系统                     |
+| SSH 工具 | 连接服务器用                        | Windows: PuTTY / PowerShell 自带 ssh |
 
 ### 可以后续配置的
 
-| 项目 | 说明 |
-|------|------|
+| 项目             | 说明                                 |
+| ---------------- | ------------------------------------ |
 | 微信开放平台账号 | 用于扫码登录，测试阶段可先用密码登录 |
-| SSL 证书 | 本指南使用免费的 Let's Encrypt |
+| SSL 证书         | 本指南使用免费的 Let's Encrypt       |
 
 ---
 
@@ -57,11 +62,11 @@ docker compose version
 
 在云服务商控制台找到「安全组」或「防火墙」：
 
-| 端口 | 协议 | 说明 |
-|------|------|------|
-| 22 | TCP | SSH 远程连接 |
-| 80 | TCP | HTTP（用于证书申请和跳转） |
-| 443 | TCP | HTTPS（主要访问端口） |
+| 端口 | 协议 | 说明                       |
+| ---- | ---- | -------------------------- |
+| 22   | TCP  | SSH 远程连接               |
+| 80   | TCP  | HTTP（用于证书申请和跳转） |
+| 443  | TCP  | HTTPS（主要访问端口）      |
 
 **不要开放** 5432（数据库）、6379（Redis）、8000（后端）— 这些只需要内部访问。
 
@@ -151,15 +156,15 @@ DEBUG=false
 
 ### 3.4 关键配置说明
 
-| 配置项 | 说明 |
-|--------|------|
-| `DB_PASSWORD` | 数据库密码，必须强密码 |
-| `DATABASE_URL` | 注意主机名是 `db`（Docker 内部服务名），不是 localhost |
-| `JWT_SECRET_KEY` | JWT 签名密钥，泄露 = 任何人可以伪造登录凭证 |
-| `ADMIN_PASSWORD` | 管理员 admin 的密码，覆盖默认的 admin123 |
-| `CORS_ORIGINS` | 你的域名（带 https://），多个用逗号分隔 |
-| `DOCS_ENABLED` | 生产环境必须 `false`，否则 API 文档公开暴露 |
-| `DEBUG` | 生产环境必须 `false` |
+| 配置项             | 说明                                                     |
+| ------------------ | -------------------------------------------------------- |
+| `DB_PASSWORD`    | 数据库密码，必须强密码                                   |
+| `DATABASE_URL`   | 注意主机名是 `db`（Docker 内部服务名），不是 localhost |
+| `JWT_SECRET_KEY` | JWT 签名密钥，泄露 = 任何人可以伪造登录凭证              |
+| `ADMIN_PASSWORD` | 管理员 admin 的密码，覆盖默认的 admin123                 |
+| `CORS_ORIGINS`   | 你的域名（带 https://），多个用逗号分隔                  |
+| `DOCS_ENABLED`   | 生产环境必须 `false`，否则 API 文档公开暴露            |
+| `DEBUG`          | 生产环境必须 `false`                                   |
 
 ---
 
@@ -169,10 +174,10 @@ DEBUG=false
 
 在域名服务商控制台添加 A 记录：
 
-| 记录类型 | 主机记录 | 记录值 | TTL |
-|----------|---------|--------|-----|
-| A | @ | <服务器公网 IP> | 600 |
-| A | www | <服务器公网 IP> | 600 |
+| 记录类型 | 主机记录 | 记录值          | TTL |
+| -------- | -------- | --------------- | --- |
+| A        | @        | <服务器公网 IP> | 600 |
+| A        | www      | <服务器公网 IP> | 600 |
 
 等待 DNS 生效（通常几分钟到几小时）：
 
@@ -333,13 +338,13 @@ docker compose logs -f backend
 
 ### 6.2 安全验证清单
 
-| 验证项 | 方法 | 预期结果 |
-|--------|------|---------|
-| HTTPS 正常 | 浏览器访问 `https://...` | 地址栏显示锁图标 |
-| HTTP 跳转 | 浏览器访问 `http://...` | 自动跳转到 HTTPS |
-| API 文档已隐藏 | 浏览器访问 `https://.../docs` | 返回 404 |
-| Cookie 安全 | F12 → Application → Cookies | token 标记为 HttpOnly, Secure, SameSite=Strict |
-| 密码加密 | 无法直接验证 | 已用 PBKDF2 480000 次 |
+| 验证项         | 方法                            | 预期结果                                       |
+| -------------- | ------------------------------- | ---------------------------------------------- |
+| HTTPS 正常     | 浏览器访问 `https://...`      | 地址栏显示锁图标                               |
+| HTTP 跳转      | 浏览器访问 `http://...`       | 自动跳转到 HTTPS                               |
+| API 文档已隐藏 | 浏览器访问 `https://.../docs` | 返回 404                                       |
+| Cookie 安全    | F12 → Application → Cookies   | token 标记为 HttpOnly, Secure, SameSite=Strict |
+| 密码加密       | 无法直接验证                    | 已用 PBKDF2 480000 次                          |
 
 ### 6.3 创建正式用户
 
@@ -445,24 +450,24 @@ docker compose ps
 
 ### 8.4 常见问题排查
 
-| 问题 | 排查方法 |
-|------|---------|
-| 页面打不开 | `docker compose ps` 检查服务是否都在运行 |
-| 登录失败 | `docker compose logs backend` 看后端日志 |
-| 502 Bad Gateway | 后端未启动或崩溃，`docker compose logs backend` 排查 |
-| 证书过期 | `~/.acme.sh/acme.sh --renew -d fablab.example.com` |
-| 数据库连接失败 | 检查 `.env` 中 `DATABASE_URL` 的主机名是否为 `db` |
-| Redis 连接失败 | 检查 `.env` 中 `REDIS_URL` 的主机名是否为 `redis` |
+| 问题            | 排查方法                                                |
+| --------------- | ------------------------------------------------------- |
+| 页面打不开      | `docker compose ps` 检查服务是否都在运行              |
+| 登录失败        | `docker compose logs backend` 看后端日志              |
+| 502 Bad Gateway | 后端未启动或崩溃，`docker compose logs backend` 排查  |
+| 证书过期        | `~/.acme.sh/acme.sh --renew -d fablab.example.com`    |
+| 数据库连接失败  | 检查 `.env` 中 `DATABASE_URL` 的主机名是否为 `db` |
+| Redis 连接失败  | 检查 `.env` 中 `REDIS_URL` 的主机名是否为 `redis` |
 
 ---
 
 ## 附录 A: 服务器最低配置
 
-| 组件 | 最低要求 | 推荐 |
-|------|---------|------|
-| CPU | 1 核 | 2 核 |
-| 内存 | 1 GB | 2 GB+ |
-| 磁盘 | 20 GB | 40 GB+ SSD |
+| 组件 | 最低要求         | 推荐             |
+| ---- | ---------------- | ---------------- |
+| CPU  | 1 核             | 2 核             |
+| 内存 | 1 GB             | 2 GB+            |
+| 磁盘 | 20 GB            | 40 GB+ SSD       |
 | 系统 | Ubuntu 22.04 LTS | Ubuntu 22.04 LTS |
 
 ---
@@ -574,3 +579,741 @@ volumes:
 ```
 
 > 注意：把 `<你的域名>` 替换为实际域名。
+
+# 方案 B：本地笔记本 + Cloudflare Tunnel
+
+> **推荐新手先用这个方案**。不需要云服务器、不需要备案、不需要手动配置 SSL。
+> 一台旧笔记本 + 免费域名 + Cloudflare 免费账号 = 完整的生产环境。
+
+## 原理
+
+```
+用户浏览器 → Cloudflare CDN（自动 HTTPS）→ Cloudflare Tunnel → 你的笔记本（Docker）
+```
+
+Cloudflare 免费提供 HTTPS 证书和 CDN 加速，你的笔记本不需要公网 IP。
+
+---
+
+## B1: 准备笔记本
+
+### 硬件要求
+
+| 项目 | 最低要求                                    |
+| ---- | ------------------------------------------- |
+| 系统 | Ubuntu 22.04 LTS（推荐）或 Ubuntu 24.04 LTS |
+| CPU  | 2 核（大多数笔记本都满足）                  |
+| 内存 | 2 GB+                                       |
+| 磁盘 | 20 GB+ 可用空间                             |
+| 网络 | 能上网即可（不需要公网 IP）                 |
+
+### 安装 Ubuntu 系统
+
+如果你的笔记本当前是 Windows：
+
+1. **方案一：双系统（推荐）**
+
+   - 下载 [Ubuntu 22.04 LTS 镜像](https://ubuntu.com/download/desktop)
+   - 用 [Rufus](https://rufus.ie/) 制作 USB 启动盘
+   - 重启从 USB 启动，选择「安装 Ubuntu alongside Windows」
+   - 安装时选择「最小安装」即可
+2. **方案二：全盘安装（旧笔记本推荐）**
+
+   - 备份重要数据后，从 USB 启动选择「Erase disk and install Ubuntu」
+   - 安装完成后系统更干净、更稳定
+3. **方案三：WSL2（Windows 内置 Linux，最简单但有局限）**
+
+   - Windows 搜索「Turn Windows features on or off」→ 勾选「Windows Subsystem for Linux」
+   - 重启后 `wsl --install -d Ubuntu-22.04`
+   - Docker 也能跑，但性能和稳定性不如原生 Linux
+
+### 安装后基础配置
+
+```bash
+# 更新系统
+sudo apt update && sudo apt upgrade -y
+
+# 安装必要工具
+sudo apt install -y curl git nano
+
+# 设置时区
+sudo timedatectl set-timezone Asia/Shanghai
+```
+
+---
+
+## B2: 安装 Docker
+
+```bash
+# 一键安装 Docker
+curl -fsSL https://get.docker.com | sudo sh
+
+# 把当前用户加入 docker 组（这样不用每次 sudo）
+sudo usermod -aG docker $USER
+
+# 重新登录让权限生效（重要！）
+exit
+# 重新 SSH 或重新打开终端
+
+# 验证
+docker --version
+docker compose version
+```
+
+---
+
+## B3: 注册 Cloudflare 和域名
+
+### 3.1 注册 Cloudflare
+
+1. 访问 [dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up)
+2. 用邮箱注册（免费账号即可）
+
+### 3.2 购买域名
+
+> 推荐在 Cloudflare 直接买域名，价格透明无加价。
+
+1. 登录 Cloudflare 控制台
+2. 左侧菜单 → **Domain Registration** → **Register Domains**
+3. 搜索你想要的域名（如 `fablab.online`、`fablab.club`）
+4. `.online` / `.club` / `.site` 域名通常首年 ¥10-30
+
+> **为什么不用国内域名？** 国内域名需要备案，而家庭宽带无法备案。Cloudflare 注册的境外域名无需备案。
+
+### 3.3 添加站点
+
+1. Cloudflare 控制台 → **Add a site**
+2. 输入你购买的域名
+3. 选择 **Free 计划**
+4. Cloudflare 会给你两个 NS（域名服务器）地址
+5. 按提示去域名管理页面修改 NS 记录
+6. 等待生效（通常几分钟，最长 24 小时）
+
+---
+
+## B4: 获取代码并配置
+
+### 4.1 克隆代码
+
+```bash
+mkdir -p ~/fablab
+cd ~/fablab
+git clone https://github.com/YuShuangyuanFABLAB/FabLabOnline.git .
+```
+
+### 4.2 生成密钥并配置 .env
+
+```bash
+# 生成随机密钥（记下来！）
+echo "数据库密码: $(openssl rand -base64 24)"
+echo "JWT 密钥: $(openssl rand -hex 32)"
+echo "管理员密码: $(openssl rand -base64 16)"
+```
+
+```bash
+nano .env
+```
+
+填入：
+
+```env
+# 数据库
+DB_NAME=fablab
+DB_USER=fablab
+DB_PASSWORD=<生成的数据库密码>
+DATABASE_URL=postgresql+asyncpg://fablab:<数据库密码>@db:5432/fablab
+REDIS_URL=redis://redis:6379/0
+
+# 安全
+JWT_SECRET_KEY=<生成的 JWT 密钥>
+ADMIN_PASSWORD=<生成的管理员密码>
+
+# CORS — 填你的域名
+CORS_ORIGINS=https://fablab.example.com
+
+# 生产环境关闭 API 文档
+DOCS_ENABLED=false
+
+# 微信 OAuth（暂时留空）
+WECHAT_APP_ID=
+WECHAT_APP_SECRET=
+WECHAT_REDIRECT_URI=
+
+# 其他
+APP_VERSION=1.0.0
+DEBUG=false
+```
+
+---
+
+## B5: 构建并启动 Docker
+
+```bash
+cd ~/fablab
+docker compose build
+docker compose up -d
+```
+
+检查状态：
+
+```bash
+docker compose ps
+```
+
+全部 `Up` 和 `healthy` 即可。此时服务运行在笔记本的 `localhost:8080`。
+
+---
+
+## B6: 配置 Cloudflare Tunnel
+
+这一步让外部用户通过域名访问你的笔记本。
+
+### 6.1 安装 cloudflared
+
+```bash
+# Ubuntu/Debian
+curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg
+echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflared.list
+sudo apt update && sudo apt install -y cloudflared
+```
+
+### 6.2 登录 Cloudflare
+
+```bash
+cloudflared tunnel login
+```
+
+会弹出一个浏览器链接，点击授权。授权后会下载一个证书文件。
+
+### 6.3 创建隧道
+
+```bash
+# 创建隧道（名字随意，如 fablab）
+cloudflared tunnel create fablab
+
+# 记下输出的 Tunnel ID（一串 UUID）
+# 例如：Tunnel credentials written to /home/xxx/.cloudflared/<UUID>.json
+```
+
+### 6.4 配置 DNS
+
+```bash
+# 把域名指向隧道（替换 <Tunnel-ID> 和 <你的域名>）
+cloudflared tunnel route dns fablab fablab.example.com
+```
+
+这会自动在 Cloudflare 添加一条 CNAME 记录。
+
+### 6.5 创建隧道配置文件
+
+```bash
+nano ~/.cloudflared/config.yml
+```
+
+写入：
+
+```yaml
+tunnel: fablab
+credentials-file: /home/<你的用户名>/.cloudflared/<Tunnel-ID>.json
+
+ingress:
+  - hostname: fablab.example.com
+    service: http://localhost:8080
+  - service: http_status:404
+```
+
+> 把 `<你的用户名>` 和 `<Tunnel-ID>` 替换为实际值。
+> 最后一条 `- service: http_status:404` 是默认兜底规则，**必须保留**。
+
+### 6.6 测试隧道
+
+```bash
+cloudflared tunnel run fablab
+```
+
+看到 `Connection ... registered` 即成功。不要关闭终端，另开一个终端测试：
+
+```bash
+# 在另一个终端
+curl -I https://fablab.example.com/health
+```
+
+返回 `200 OK` 就对了。
+
+### 6.7 设置为系统服务（后台运行 + 开机自启）
+
+```bash
+# 安装为系统服务
+sudo cloudflared service install
+
+# 启动并设为开机自启
+sudo systemctl start cloudflared
+sudo systemctl enable cloudflared
+
+# 检查状态
+sudo systemctl status cloudflared
+```
+
+现在隧道在后台运行，笔记本重启后也会自动连接。
+
+---
+
+## B7: 防止笔记本休眠
+
+**这步很关键！** 笔记本合盖会休眠，服务会中断。
+
+```bash
+# 编辑 logind 配置
+sudo nano /etc/systemd/logind.conf
+```
+
+找到并修改（取消注释 + 改值）：
+
+```ini
+HandleLidSwitch=ignore
+HandleLidSwitchDocked=ignore
+```
+
+重启生效：
+
+```bash
+sudo systemctl restart systemd-logind
+```
+
+现在合上笔记本盖子，系统继续运行。
+
+---
+
+## B8: 验证部署
+
+1. 用**手机或其他设备**（不同网络）打开 `https://fablab.example.com`
+2. 应该看到登录页面
+3. 用 `admin` / `<.env 中的 ADMIN_PASSWORD>` 登录
+4. 浏览器地址栏应显示锁图标（Cloudflare 自动 HTTPS）
+
+---
+
+## B9: 微信扫码登录
+
+与方案 A 的 Step 7 相同。配置 `.env` 中的 `WECHAT_*` 后重启后端：
+
+```bash
+cd ~/fablab
+nano .env  # 填写 WECHAT_APP_ID / WECHAT_APP_SECRET / WECHAT_REDIRECT_URI
+docker compose restart backend
+```
+
+---
+
+## 方案 B 日常运维
+
+### Docker 开机自启
+
+```bash
+sudo systemctl enable docker
+```
+
+### 常用命令
+
+```bash
+# 查看服务状态
+cd ~/fablab && docker compose ps
+
+# 查看日志
+docker compose logs -f backend
+
+# 更新代码并重新部署
+cd ~/fablab && git pull origin master && docker compose up -d --build
+
+# 数据库备份
+docker compose exec db pg_dump -U fablab fablab > ~/fablab_$(date +%Y%m%d).sql
+```
+
+### 自动备份（每天凌晨 3 点）
+
+```bash
+echo "0 3 * * * cd /home/$USER/fablab && docker compose exec -T db pg_dump -U fablab fablab > /home/$USER/backups/fablab_\$(date +\%Y\%m\%d).sql" | crontab -
+mkdir -p ~/backups
+```
+
+### 常见问题
+
+| 问题                 | 解决                                                                     |
+| -------------------- | ------------------------------------------------------------------------ |
+| 合盖后无法访问       | 检查 `/etc/systemd/logind.conf` 中 `HandleLidSwitch=ignore`          |
+| 域名访问不了         | `sudo systemctl status cloudflared` 看隧道是否在线                     |
+| 服务挂了             | `docker compose ps` + `docker compose logs backend`                  |
+| 电脑重启后服务没恢复 | `sudo systemctl enable docker` + `sudo systemctl enable cloudflared` |
+| 想临时停服务         | `docker compose down`（数据不会丢失）                                  |
+| 想恢复服务           | `docker compose up -d`                                                 |
+
+---
+
+# 方案 B：本地笔记本 + Cloudflare Tunnel
+
+> **推荐新手先用这个方案**。不需要云服务器、不需要备案、不需要手动配置 SSL。
+> 一台旧笔记本 + 免费域名 + Cloudflare 免费账号 = 完整的生产环境。
+
+## 原理
+
+```
+用户浏览器 → Cloudflare CDN（自动 HTTPS）→ Cloudflare Tunnel → 你的笔记本（Docker）
+```
+
+Cloudflare 免费提供 HTTPS 证书和 CDN 加速，你的笔记本不需要公网 IP。
+
+---
+
+## B1: 准备笔记本
+
+### 硬件要求
+
+| 项目 | 最低要求                                    |
+| ---- | ------------------------------------------- |
+| 系统 | Ubuntu 22.04 LTS（推荐）或 Ubuntu 24.04 LTS |
+| CPU  | 2 核（大多数笔记本都满足）                  |
+| 内存 | 2 GB+                                       |
+| 磁盘 | 20 GB+ 可用空间                             |
+| 网络 | 能上网即可（不需要公网 IP）                 |
+
+### 安装 Ubuntu 系统
+
+如果你的笔记本当前是 Windows：
+
+1. **方案一：双系统（推荐）**
+
+   - 下载 [Ubuntu 22.04 LTS 镜像](https://ubuntu.com/download/desktop)
+   - 用 [Rufus](https://rufus.ie/) 制作 USB 启动盘
+   - 重启从 USB 启动，选择「安装 Ubuntu alongside Windows」
+   - 安装时选择「最小安装」即可
+2. **方案二：全盘安装（旧笔记本推荐）**
+
+   - 备份重要数据后，从 USB 启动选择「Erase disk and install Ubuntu」
+   - 安装完成后系统更干净、更稳定
+3. **方案三：WSL2（Windows 内置 Linux，最简单但有局限）**
+
+   - Windows 搜索「Turn Windows features on or off」→ 勾选「Windows Subsystem for Linux」
+   - 重启后 `wsl --install -d Ubuntu-22.04`
+   - Docker 也能跑，但性能和稳定性不如原生 Linux
+
+### 安装后基础配置
+
+```bash
+# 更新系统
+sudo apt update && sudo apt upgrade -y
+
+# 安装必要工具
+sudo apt install -y curl git nano
+
+# 设置时区
+sudo timedatectl set-timezone Asia/Shanghai
+```
+
+---
+
+## B2: 安装 Docker
+
+```bash
+# 一键安装 Docker
+curl -fsSL https://get.docker.com | sudo sh
+
+# 把当前用户加入 docker 组（这样不用每次 sudo）
+sudo usermod -aG docker $USER
+
+# 重新登录让权限生效（重要！）
+exit
+# 重新 SSH 或重新打开终端
+
+# 验证
+docker --version
+docker compose version
+```
+
+---
+
+## B3: 注册 Cloudflare 和域名
+
+### 3.1 注册 Cloudflare
+
+1. 访问 [dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up)
+2. 用邮箱注册（免费账号即可）
+
+### 3.2 购买域名
+
+> 推荐在 Cloudflare 直接买域名，价格透明无加价。
+
+1. 登录 Cloudflare 控制台
+2. 左侧菜单 → **Domain Registration** → **Register Domains**
+3. 搜索你想要的域名（如 `fablab.online`、`fablab.club`）
+4. `.online` / `.club` / `.site` 域名通常首年 ¥10-30
+
+> **为什么不用国内域名？** 国内域名需要备案，而家庭宽带无法备案。Cloudflare 注册的境外域名无需备案。
+
+### 3.3 添加站点
+
+1. Cloudflare 控制台 → **Add a site**
+2. 输入你购买的域名
+3. 选择 **Free 计划**
+4. Cloudflare 会给你两个 NS（域名服务器）地址
+5. 按提示去域名管理页面修改 NS 记录
+6. 等待生效（通常几分钟，最长 24 小时）
+
+---
+
+## B4: 获取代码并配置
+
+### 4.1 克隆代码
+
+```bash
+mkdir -p ~/fablab
+cd ~/fablab
+git clone https://github.com/YuShuangyuanFABLAB/FabLabOnline.git .
+```
+
+### 4.2 生成密钥并配置 .env
+
+```bash
+# 生成随机密钥（记下来！）
+echo "数据库密码: $(openssl rand -base64 24)"
+echo "JWT 密钥: $(openssl rand -hex 32)"
+echo "管理员密码: $(openssl rand -base64 16)"
+```
+
+```bash
+nano .env
+```
+
+填入：
+
+```env
+# 数据库
+DB_NAME=fablab
+DB_USER=fablab
+DB_PASSWORD=<生成的数据库密码>
+DATABASE_URL=postgresql+asyncpg://fablab:<数据库密码>@db:5432/fablab
+REDIS_URL=redis://redis:6379/0
+
+# 安全
+JWT_SECRET_KEY=<生成的 JWT 密钥>
+ADMIN_PASSWORD=<生成的管理员密码>
+
+# CORS — 填你的域名
+CORS_ORIGINS=https://fablab.example.com
+
+# 生产环境关闭 API 文档
+DOCS_ENABLED=false
+
+# 微信 OAuth（暂时留空）
+WECHAT_APP_ID=
+WECHAT_APP_SECRET=
+WECHAT_REDIRECT_URI=
+
+# 其他
+APP_VERSION=1.0.0
+DEBUG=false
+```
+
+---
+
+## B5: 构建并启动 Docker
+
+```bash
+cd ~/fablab
+docker compose build
+docker compose up -d
+```
+
+检查状态：
+
+```bash
+docker compose ps
+```
+
+全部 `Up` 和 `healthy` 即可。此时服务运行在笔记本的 `localhost:8080`。
+
+---
+
+## B6: 配置 Cloudflare Tunnel
+
+这一步让外部用户通过域名访问你的笔记本。
+
+### 6.1 安装 cloudflared
+
+```bash
+# Ubuntu/Debian
+curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg
+echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflared.list
+sudo apt update && sudo apt install -y cloudflared
+```
+
+### 6.2 登录 Cloudflare
+
+```bash
+cloudflared tunnel login
+```
+
+会弹出一个浏览器链接，点击授权。授权后会下载一个证书文件。
+
+### 6.3 创建隧道
+
+```bash
+# 创建隧道（名字随意，如 fablab）
+cloudflared tunnel create fablab
+
+# 记下输出的 Tunnel ID（一串 UUID）
+# 例如：Tunnel credentials written to /home/xxx/.cloudflared/<UUID>.json
+```
+
+### 6.4 配置 DNS
+
+```bash
+# 把域名指向隧道（替换 <Tunnel-ID> 和 <你的域名>）
+cloudflared tunnel route dns fablab fablab.example.com
+```
+
+这会自动在 Cloudflare 添加一条 CNAME 记录。
+
+### 6.5 创建隧道配置文件
+
+```bash
+nano ~/.cloudflared/config.yml
+```
+
+写入：
+
+```yaml
+tunnel: fablab
+credentials-file: /home/<你的用户名>/.cloudflared/<Tunnel-ID>.json
+
+ingress:
+  - hostname: fablab.example.com
+    service: http://localhost:8080
+  - service: http_status:404
+```
+
+> 把 `<你的用户名>` 和 `<Tunnel-ID>` 替换为实际值。
+> 最后一条 `- service: http_status:404` 是默认兜底规则，**必须保留**。
+
+### 6.6 测试隧道
+
+```bash
+cloudflared tunnel run fablab
+```
+
+看到 `Connection ... registered` 即成功。不要关闭终端，另开一个终端测试：
+
+```bash
+# 在另一个终端
+curl -I https://fablab.example.com/health
+```
+
+返回 `200 OK` 就对了。
+
+### 6.7 设置为系统服务（后台运行 + 开机自启）
+
+```bash
+# 安装为系统服务
+sudo cloudflared service install
+
+# 启动并设为开机自启
+sudo systemctl start cloudflared
+sudo systemctl enable cloudflared
+
+# 检查状态
+sudo systemctl status cloudflared
+```
+
+现在隧道在后台运行，笔记本重启后也会自动连接。
+
+---
+
+## B7: 防止笔记本休眠
+
+**这步很关键！** 笔记本合盖会休眠，服务会中断。
+
+```bash
+# 编辑 logind 配置
+sudo nano /etc/systemd/logind.conf
+```
+
+找到并修改（取消注释 + 改值）：
+
+```ini
+HandleLidSwitch=ignore
+HandleLidSwitchDocked=ignore
+```
+
+重启生效：
+
+```bash
+sudo systemctl restart systemd-logind
+```
+
+现在合上笔记本盖子，系统继续运行。
+
+---
+
+## B8: 验证部署
+
+1. 用**手机或其他设备**（不同网络）打开 `https://fablab.example.com`
+2. 应该看到登录页面
+3. 用 `admin` / `<.env 中的 ADMIN_PASSWORD>` 登录
+4. 浏览器地址栏应显示锁图标（Cloudflare 自动 HTTPS）
+
+---
+
+## B9: 微信扫码登录
+
+与方案 A 的 Step 7 相同。配置 `.env` 中的 `WECHAT_*` 后重启后端：
+
+```bash
+cd ~/fablab
+nano .env  # 填写 WECHAT_APP_ID / WECHAT_APP_SECRET / WECHAT_REDIRECT_URI
+docker compose restart backend
+```
+
+---
+
+## 方案 B 日常运维
+
+### Docker 开机自启
+
+```bash
+sudo systemctl enable docker
+```
+
+### 常用命令
+
+```bash
+# 查看服务状态
+cd ~/fablab && docker compose ps
+
+# 查看日志
+docker compose logs -f backend
+
+# 更新代码并重新部署
+cd ~/fablab && git pull origin master && docker compose up -d --build
+
+# 数据库备份
+docker compose exec db pg_dump -U fablab fablab > ~/fablab_$(date +%Y%m%d).sql
+```
+
+### 自动备份（每天凌晨 3 点）
+
+```bash
+echo "0 3 * * * cd /home/$USER/fablab && docker compose exec -T db pg_dump -U fablab fablab > /home/$USER/backups/fablab_\$(date +\%Y\%m\%d).sql" | crontab -
+mkdir -p ~/backups
+```
+
+### 常见问题
+
+| 问题                 | 解决                                                                     |
+| -------------------- | ------------------------------------------------------------------------ |
+| 合盖后无法访问       | 检查 `/etc/systemd/logind.conf` 中 `HandleLidSwitch=ignore`          |
+| 域名访问不了         | `sudo systemctl status cloudflared` 看隧道是否在线                     |
+| 服务挂了             | `docker compose ps` + `docker compose logs backend`                  |
+| 电脑重启后服务没恢复 | `sudo systemctl enable docker` + `sudo systemctl enable cloudflared` |
+| 想临时停服务         | `docker compose down`（数据不会丢失）                                  |
+| 想恢复服务           | `docker compose up -d`                                                 |
+
+---
