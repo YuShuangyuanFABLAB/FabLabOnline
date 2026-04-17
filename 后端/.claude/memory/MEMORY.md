@@ -72,4 +72,4 @@ FastAPI + PostgreSQL 15 + Redis 7 + Vue 3 + Element Plus + PyQt5 + Docker Compos
 
 ## 关联项目
 
-- PPTGenerator (`D:\FABLAB 法贝实验室\13-工具\PPTGenerator`) — 被管理的桌面软件
+- PPTGenerator (`../PPTGenerator`) — 被管理的桌面软件

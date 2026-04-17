@@ -43,7 +43,7 @@ Task 8: PPT 软件集成 + Docker 部署
 ## 文件结构总览
 
 ```
-D:/FABLAB 法贝实验室/13-工具/法贝实验室管理系统/
+<项目根目录>/
 ├── backend/
 │   ├── main.py                          # FastAPI 入口
 │   ├── manage.py                        # CLI 管理工具（创建超管）
@@ -3159,8 +3159,8 @@ git commit -m "feat: 客户端 SDK（认证+可靠事件上报+熔断器）"
 
 **Files:**
 
-- Modify: `D:/FABLAB 法贝实验室/13-工具/PPTGenerator/main.py`（添加 SDK 登录）
-- Create: `D:/FABLAB 法贝实验室/13-工具/PPTGenerator/src/ui/dialogs/login_dialog.py`
+- Modify: `../PPTGenerator/main.py`（添加 SDK 登录）
+- Create: `../PPTGenerator/src/ui/dialogs/login_dialog.py`
 - Create: `docker-compose.yml`
 - Create: `Dockerfile`
 - Create: `Dockerfile.admin-web`
