@@ -97,4 +97,7 @@
 
 - [x] ~~安全修复 Phase 1（C1-C3, H5）~~ — Session 04 前半完成
 - [x] ~~数据完整性修复 Phase 2（H1-H4）~~ — Session 04 完成
-- [ ] 工程质量提升 Phase 3（M5-M8）— 待执行
+- [x] ~~工程质量提升 Phase 3（M5-M8）~~ — Session 05 完成
+- [x] ~~安全加固+前后端对齐 Phase 4（19 项）~~ — Session 06 完成
+- [x] ~~RBAC 验证+角色名对齐~~ — Session 07 完成
+- [x] ~~生产环境部署~~ — Session 08 完成（IP 直连已上线）
