@@ -27,13 +27,9 @@ class TestDeleteRole:
         mock_db.commit = AsyncMock()
 
         with patch("api.v1.roles.async_session") as mock_session, \
-             patch("api.v1.roles.get_policy") as mock_policy:
+             patch("api.v1.roles.require_permission", new_callable=AsyncMock):
             mock_session.return_value.__aenter__ = AsyncMock(return_value=mock_db)
             mock_session.return_value.__aexit__ = AsyncMock(return_value=False)
-
-            mock_policy_inst = MagicMock()
-            mock_policy_inst.check_permission = AsyncMock(return_value=True)
-            mock_policy.return_value = mock_policy_inst
 
             result = await delete_role("teacher", request)
             assert result["success"] is True
@@ -59,13 +55,9 @@ class TestDeleteRole:
         ))
 
         with patch("api.v1.roles.async_session") as mock_session, \
-             patch("api.v1.roles.get_policy") as mock_policy:
+             patch("api.v1.roles.require_permission", new_callable=AsyncMock):
             mock_session.return_value.__aenter__ = AsyncMock(return_value=mock_db)
             mock_session.return_value.__aexit__ = AsyncMock(return_value=False)
-
-            mock_policy_inst = MagicMock()
-            mock_policy_inst.check_permission = AsyncMock(return_value=True)
-            mock_policy.return_value = mock_policy_inst
 
             with pytest.raises(HTTPException) as exc_info:
                 await delete_role("super_admin", request)

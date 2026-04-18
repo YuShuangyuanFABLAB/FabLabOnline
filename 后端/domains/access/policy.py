@@ -115,3 +115,15 @@ def get_policy() -> PermissionPolicy:
     if _policy is None:
         _policy = RBACPolicy()
     return _policy
+
+
+async def require_permission(request, action: str, resource: str):
+    """权限检查快捷方法 — 封装重复的 get_policy + check_permission + 403 样板代码"""
+    from fastapi import HTTPException
+
+    tenant_id = request.state.tenant_id
+    user_id = request.state.user_id
+    policy = get_policy()
+    ctx = PermissionContext(tenant_id=tenant_id)
+    if not await policy.check_permission(user_id, action, resource, ctx):
+        raise HTTPException(status_code=403, detail="Permission denied")

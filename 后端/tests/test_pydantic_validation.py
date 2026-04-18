@@ -64,7 +64,7 @@ class TestCampusPydantic:
         with patch("api.middleware._session_manager", mock_sm), \
              patch("domains.access.policy.redis_client", mock_redis), \
              patch("domains.access.policy.async_session") as mock_session, \
-             patch("api.v1.campuses.get_policy") as mock_get_policy, \
+             patch("api.v1.campuses.require_permission", new_callable=AsyncMock), \
              patch("api.v1.campuses.create_campus", new_callable=AsyncMock) as mock_create, \
              patch("api.v1.campuses.write_audit_log", new_callable=AsyncMock):
             mock_db = AsyncMock()
@@ -73,10 +73,6 @@ class TestCampusPydantic:
             mock_result = MagicMock()
             mock_result.scalars.return_value.all.return_value = []
             mock_db.execute.return_value = mock_result
-
-            mock_policy_inst = MagicMock()
-            mock_policy_inst.check_permission = AsyncMock(return_value=True)
-            mock_get_policy.return_value = mock_policy_inst
 
             mock_campus = MagicMock()
             mock_campus.id = "test-campus"

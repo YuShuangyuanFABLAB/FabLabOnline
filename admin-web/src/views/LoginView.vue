@@ -87,8 +87,8 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const userId = ref('admin')
-const password = ref('admin123')
+const userId = ref('')
+const password = ref('')
 const loading = ref(false)
 
 const qrUrl = ref('')

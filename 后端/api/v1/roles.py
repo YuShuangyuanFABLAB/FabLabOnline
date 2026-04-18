@@ -1,12 +1,12 @@
 """Roles API — 角色与权限 CRUD"""
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from sqlalchemy import select, delete as sa_delete
 
 from infrastructure.database import async_session
 from models.role import Role, RolePermission
-from domains.access.policy import get_policy, PermissionContext
+from domains.access.policy import require_permission
 from domains.access.roles import get_roles, get_user_roles
-from domains.access.permissions import get_role_permissions
+from domains.access.permissions import get_role_permissions, get_roles_batch_permissions
 from domains.access.audit import write_audit_log
 
 router = APIRouter(prefix="/roles", tags=["roles"])
@@ -15,30 +15,26 @@ router = APIRouter(prefix="/roles", tags=["roles"])
 @router.get("")
 async def list_roles(request: Request):
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "read", "role", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "read", "role")
 
     roles = await get_roles(tenant_id)
-    result_data = []
-    for r in roles:
-        perms = await get_role_permissions(r.id)
-        result_data.append({
+    role_ids = [r.id for r in roles]
+    perms_map = await get_roles_batch_permissions(role_ids)
+
+    return {"success": True, "data": [
+        {
             "id": r.id, "name": r.name,
             "display_name": r.display_name, "level": r.level,
-            "permissions": perms,
-        })
-    return {"success": True, "data": result_data}
+            "permissions": perms_map.get(r.id, []),
+        }
+        for r in roles
+    ]}
 
 
 @router.get("/{role_id}/permissions")
 async def get_role_perms(role_id: str, request: Request):
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "read", "role", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "read", "role")
 
     perms = await get_role_permissions(role_id)
     return {"success": True, "data": perms}
@@ -47,10 +43,7 @@ async def get_role_perms(role_id: str, request: Request):
 @router.get("/user/{user_id}")
 async def get_user_roles_endpoint(user_id: str, request: Request):
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "read", "role", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "read", "role")
 
     roles = await get_user_roles(user_id)
     return {"success": True, "data": roles}
@@ -60,10 +53,7 @@ async def get_user_roles_endpoint(user_id: str, request: Request):
 async def delete_role(role_id: str, request: Request):
     """删除角色 — 系统角色禁止删除"""
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "delete", "role", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "delete", "role")
 
     async with async_session() as db:
         result = await db.execute(select(Role).where(Role.id == role_id))
@@ -81,6 +71,7 @@ async def delete_role(role_id: str, request: Request):
 @router.post("")
 async def create_role(
     request: Request,
+    background_tasks: BackgroundTasks,
     name: str,
     display_name: str,
     permission_ids: list[str],
@@ -90,10 +81,7 @@ async def create_role(
         raise HTTPException(status_code=400, detail="角色名不能为空")
 
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "create", "role", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "create", "role")
 
     async with async_session() as db:
         role = Role(
@@ -108,7 +96,8 @@ async def create_role(
             db.add(RolePermission(role_id=name, permission_id=pid))
         await db.commit()
 
-    await write_audit_log(
+    background_tasks.add_task(
+        write_audit_log,
         tenant_id=tenant_id,
         user_id=request.state.user_id,
         action="create",
@@ -127,16 +116,14 @@ async def create_role(
 async def update_role(
     role_id: str,
     request: Request,
+    background_tasks: BackgroundTasks,
     name: str,
     display_name: str,
     permission_ids: list[str],
 ):
     """更新角色名和权限 — 系统角色禁止修改"""
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "update", "role", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "update", "role")
 
     async with async_session() as db:
         result = await db.execute(select(Role).where(Role.id == role_id))
@@ -157,7 +144,8 @@ async def update_role(
             db.add(RolePermission(role_id=role_id, permission_id=pid))
         await db.commit()
 
-    await write_audit_log(
+    background_tasks.add_task(
+        write_audit_log,
         tenant_id=tenant_id,
         user_id=request.state.user_id,
         action="update",

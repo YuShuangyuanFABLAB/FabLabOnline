@@ -1,6 +1,7 @@
 """Phase 4B 安全加固测试 — C2/H2/H3/H7"""
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+from starlette.background import BackgroundTasks
 
 
 # ── C2/H7: JWT 密钥启动校验 ──
@@ -43,18 +44,12 @@ class TestAppsReturnSecret:
     """H2: register_app 应返回 app_secret（仅此一次）"""
 
     @patch("api.v1.apps.write_audit_log", new_callable=AsyncMock)
-    @patch("api.v1.apps.get_policy")
+    @patch("api.v1.apps.require_permission", new_callable=AsyncMock)
     @patch("api.v1.apps.async_session")
     async def test_register_app_returns_secret(
-        self, mock_db, mock_policy, mock_audit
+        self, mock_db, mock_perm, mock_audit
     ):
         """注册应用后应返回 app_secret 明文（仅注册时可见）"""
-        # 权限通过
-        policy = MagicMock()
-        policy.check_permission = AsyncMock(return_value=True)
-        mock_policy.return_value = policy
-
-        # 数据库 mock
         app_obj = MagicMock()
         app_obj.id = "test-app"
         app_obj.name = "测试应用"
@@ -77,7 +72,8 @@ class TestAppsReturnSecret:
         request.headers = {"user-agent": "test"}
 
         body = RegisterAppRequest(app_id="test-app", name="测试应用", app_key="test_key")
-        result = await register_app(request, body)
+        bg = BackgroundTasks()
+        result = await register_app(request, body, bg)
 
         data = result.get("data", result) if isinstance(result, dict) else {}
         assert "app_secret" in data, (
@@ -96,15 +92,11 @@ class TestAnalyticsPermissionCheck:
     """H3: user_activity 端点必须进行权限校验"""
 
     @patch("api.v1.analytics.get_user_activity", new_callable=AsyncMock, return_value={"user_id": "u1", "events": []})
-    @patch("api.v1.analytics.get_policy")
+    @patch("api.v1.analytics.require_permission", new_callable=AsyncMock)
     async def test_user_activity_checks_permission(
-        self, mock_policy, mock_get_activity
+        self, mock_perm, mock_get_activity
     ):
-        """user_activity 必须调用 check_permission"""
-        policy = MagicMock()
-        policy.check_permission = AsyncMock(return_value=True)
-        mock_policy.return_value = policy
-
+        """user_activity 必须调用 require_permission"""
         from api.v1.analytics import user_activity
         request = MagicMock()
         request.state.tenant_id = "default"
@@ -112,20 +104,17 @@ class TestAnalyticsPermissionCheck:
 
         await user_activity("u1", request)
 
-        # 验证 check_permission 被调用了
-        policy.check_permission.assert_called_once()
+        mock_perm.assert_called_once()
 
     @patch("api.v1.analytics.get_user_activity", new_callable=AsyncMock, return_value={"user_id": "u1", "events": []})
-    @patch("api.v1.analytics.get_policy")
+    @patch("api.v1.analytics.require_permission", new_callable=AsyncMock)
     async def test_user_activity_denies_without_permission(
-        self, mock_policy, mock_get_activity
+        self, mock_perm, mock_get_activity
     ):
         """无权限时 user_activity 应返回 403"""
-        policy = MagicMock()
-        policy.check_permission = AsyncMock(return_value=False)
-        mock_policy.return_value = policy
-
         from fastapi import HTTPException
+        mock_perm.side_effect = HTTPException(status_code=403, detail="Permission denied")
+
         from api.v1.analytics import user_activity
         request = MagicMock()
         request.state.tenant_id = "default"

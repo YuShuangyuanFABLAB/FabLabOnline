@@ -1,6 +1,7 @@
 """Phase 4C 前后端对齐测试 — H6/H5/H4"""
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+from starlette.background import BackgroundTasks
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -34,27 +35,22 @@ class TestRolesReturnPermissions:
         role_teacher.level = 10
 
         with patch("api.v1.roles.get_roles", new_callable=AsyncMock) as mock_get_roles, \
-             patch("api.v1.roles.get_role_permissions", new_callable=AsyncMock) as mock_get_perms, \
-             patch("api.v1.roles.get_policy") as mock_policy:
+             patch("api.v1.roles.get_roles_batch_permissions", new_callable=AsyncMock) as mock_batch_perms, \
+             patch("api.v1.roles.require_permission", new_callable=AsyncMock):
 
             mock_get_roles.return_value = [role_super, role_teacher]
-            mock_get_perms.side_effect = [
-                ["user:read", "user:create"],
-                ["user:read"],
-            ]
-            policy = MagicMock()
-            policy.check_permission = AsyncMock(return_value=True)
-            mock_policy.return_value = policy
+            mock_batch_perms.return_value = {
+                "super_admin": ["user:read", "user:create"],
+                "teacher": ["user:read"],
+            }
 
             result = await list_roles(request)
 
         assert result["success"] is True
         roles_data = result["data"]
         assert len(roles_data) == 2
-        # super_admin 应有 permissions 数组
         assert roles_data[0]["id"] == "super_admin"
         assert roles_data[0]["permissions"] == ["user:read", "user:create"]
-        # teacher 应有 permissions 数组
         assert roles_data[1]["id"] == "teacher"
         assert roles_data[1]["permissions"] == ["user:read"]
 
@@ -71,7 +67,6 @@ class TestAppsToggleStatus:
     async def test_toggle_app_status_to_disabled(self):
         """将应用状态从 active 改为 disabled"""
         from api.v1.apps import toggle_app_status
-        from pydantic import BaseModel
 
         request = MagicMock()
         request.state.user_id = "admin"
@@ -80,19 +75,14 @@ class TestAppsToggleStatus:
         request.client.host = "127.0.0.1"
         request.headers = {"user-agent": "test"}
 
-        # Mock DB
         mock_app = MagicMock()
         mock_app.id = "ppt-generator"
         mock_app.name = "PPT生成器"
         mock_app.status = "active"
 
         with patch("api.v1.apps.async_session") as mock_session, \
-             patch("api.v1.apps.get_policy") as mock_policy, \
+             patch("api.v1.apps.require_permission", new_callable=AsyncMock), \
              patch("api.v1.apps.write_audit_log", new_callable=AsyncMock):
-
-            policy = MagicMock()
-            policy.check_permission = AsyncMock(return_value=True)
-            mock_policy.return_value = policy
 
             mock_db = AsyncMock()
             mock_session.return_value.__aenter__ = AsyncMock(return_value=mock_db)
@@ -102,7 +92,7 @@ class TestAppsToggleStatus:
             mock_result.scalar_one_or_none.return_value = mock_app
             mock_db.execute.return_value = mock_result
 
-            result = await toggle_app_status("ppt-generator", request, status="disabled")
+            result = await toggle_app_status("ppt-generator", request, status="disabled", background_tasks=BackgroundTasks())
 
         assert result["success"] is True
         assert result["data"]["status"] == "disabled"
@@ -121,12 +111,8 @@ class TestAppsToggleStatus:
         request.headers = {"user-agent": "test"}
 
         with patch("api.v1.apps.async_session") as mock_session, \
-             patch("api.v1.apps.get_policy") as mock_policy, \
+             patch("api.v1.apps.require_permission", new_callable=AsyncMock), \
              patch("api.v1.apps.write_audit_log", new_callable=AsyncMock):
-
-            policy = MagicMock()
-            policy.check_permission = AsyncMock(return_value=True)
-            mock_policy.return_value = policy
 
             mock_db = AsyncMock()
             mock_session.return_value.__aenter__ = AsyncMock(return_value=mock_db)
@@ -137,7 +123,7 @@ class TestAppsToggleStatus:
             mock_db.execute.return_value = mock_result
 
             with pytest.raises(HTTPException) as exc_info:
-                await toggle_app_status("nonexistent", request, status="disabled")
+                await toggle_app_status("nonexistent", request, status="disabled", background_tasks=BackgroundTasks())
             assert exc_info.value.status_code == 404
 
 
@@ -159,12 +145,8 @@ class TestRolesCreateAndUpdate:
         request.state.tenant_id = "default"
 
         with patch("api.v1.roles.async_session") as mock_session, \
-             patch("api.v1.roles.get_policy") as mock_policy, \
+             patch("api.v1.roles.require_permission", new_callable=AsyncMock), \
              patch("api.v1.roles.write_audit_log", new_callable=AsyncMock):
-
-            policy = MagicMock()
-            policy.check_permission = AsyncMock(return_value=True)
-            mock_policy.return_value = policy
 
             mock_db = AsyncMock()
             mock_session.return_value.__aenter__ = AsyncMock(return_value=mock_db)
@@ -172,6 +154,7 @@ class TestRolesCreateAndUpdate:
 
             result = await create_role(
                 request,
+                background_tasks=BackgroundTasks(),
                 name="lab_manager",
                 display_name="实验室管理员",
                 permission_ids=["user:read", "campus:read"],
@@ -191,13 +174,9 @@ class TestRolesCreateAndUpdate:
         request.state.user_id = "admin"
         request.state.tenant_id = "default"
 
-        with patch("api.v1.roles.get_policy") as mock_policy:
-            policy = MagicMock()
-            policy.check_permission = AsyncMock(return_value=True)
-            mock_policy.return_value = policy
-
+        with patch("api.v1.roles.require_permission", new_callable=AsyncMock):
             with pytest.raises(HTTPException) as exc_info:
-                await create_role(request, name="", display_name="X", permission_ids=[])
+                await create_role(request, background_tasks=BackgroundTasks(), name="", display_name="X", permission_ids=[])
             assert exc_info.value.status_code == 400
 
     @pytest.mark.asyncio
@@ -209,7 +188,6 @@ class TestRolesCreateAndUpdate:
         request.state.user_id = "admin"
         request.state.tenant_id = "default"
 
-        # Mock existing role
         mock_role = MagicMock()
         mock_role.id = "teacher"
         mock_role.name = "teacher"
@@ -217,12 +195,8 @@ class TestRolesCreateAndUpdate:
         mock_role.is_system = False
 
         with patch("api.v1.roles.async_session") as mock_session, \
-             patch("api.v1.roles.get_policy") as mock_policy, \
+             patch("api.v1.roles.require_permission", new_callable=AsyncMock), \
              patch("api.v1.roles.write_audit_log", new_callable=AsyncMock):
-
-            policy = MagicMock()
-            policy.check_permission = AsyncMock(return_value=True)
-            mock_policy.return_value = policy
 
             mock_db = AsyncMock()
             mock_session.return_value.__aenter__ = AsyncMock(return_value=mock_db)
@@ -235,6 +209,7 @@ class TestRolesCreateAndUpdate:
             result = await update_role(
                 "teacher",
                 request,
+                background_tasks=BackgroundTasks(),
                 name="instructor",
                 display_name="指导教师",
                 permission_ids=["user:read", "campus:read", "campus:update"],
@@ -259,11 +234,7 @@ class TestRolesCreateAndUpdate:
         mock_role.is_system = True
 
         with patch("api.v1.roles.async_session") as mock_session, \
-             patch("api.v1.roles.get_policy") as mock_policy:
-
-            policy = MagicMock()
-            policy.check_permission = AsyncMock(return_value=True)
-            mock_policy.return_value = policy
+             patch("api.v1.roles.require_permission", new_callable=AsyncMock):
 
             mock_db = AsyncMock()
             mock_session.return_value.__aenter__ = AsyncMock(return_value=mock_db)
@@ -274,5 +245,5 @@ class TestRolesCreateAndUpdate:
             mock_db.execute.return_value = mock_result
 
             with pytest.raises(HTTPException) as exc_info:
-                await update_role("super_admin", request, name="x", display_name="x", permission_ids=[])
+                await update_role("super_admin", request, background_tasks=BackgroundTasks(), name="x", display_name="x", permission_ids=[])
             assert exc_info.value.status_code == 403

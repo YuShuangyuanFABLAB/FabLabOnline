@@ -21,6 +21,8 @@ def _validate_tenant_id(tenant_id: str) -> bool:
 @router.post("/batch")
 async def batch_report(request: Request, events: list[dict], background_tasks: BackgroundTasks):
     """批量上报事件 — 放入内存队列（毫秒级返回）"""
+    if len(events) > 100:
+        raise HTTPException(status_code=400, detail=f"批量上报上限 100 条，当前 {len(events)} 条")
     tenant_id = request.state.tenant_id
     user_id = request.state.user_id
     app_id = getattr(request.state, "app_id", "unknown")
@@ -42,17 +44,17 @@ async def batch_report(request: Request, events: list[dict], background_tasks: B
 
 
 async def get_events(tenant_id: str, event_type: str = None, limit: int = 20):
-    """查询事件列表"""
+    """查询事件列表 — 从 events 分区表按 tenant_id 过滤"""
     if not _validate_tenant_id(tenant_id):
         raise HTTPException(status_code=400, detail="Invalid tenant_id format")
     async with async_session() as db:
-        table = f"events_{tenant_id}"
-        sql = f"SELECT * FROM {table}"
-        params = {"limit": limit}
+        conditions = ["tenant_id = :tenant_id"]
+        params: dict = {"tenant_id": tenant_id, "limit": limit}
         if event_type:
-            sql += " WHERE event_type = :event_type"
+            conditions.append("event_type = :event_type")
             params["event_type"] = event_type
-        sql += " ORDER BY timestamp DESC LIMIT :limit"
+        where = " AND ".join(conditions)
+        sql = f"SELECT * FROM events WHERE {where} ORDER BY timestamp DESC LIMIT :limit"
         result = await db.execute(text(sql), params)
         rows = [dict(row._mapping) for row in result.fetchall()]
         return rows

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fablab-sdk"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
     "httpx>=0.27.0",
     "pydantic>=2.0",

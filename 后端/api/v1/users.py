@@ -1,11 +1,11 @@
 """Users API — 用户管理"""
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from infrastructure.database import async_session
 from models.user import User
-from domains.access.policy import get_policy, PermissionContext
+from domains.access.policy import require_permission
 from domains.access.audit import write_audit_log
 from domains.access.roles import assign_role
 from domains.identity.session_manager import SessionManager
@@ -25,15 +25,11 @@ class AssignRoleRequest(BaseModel):
 @router.get("")
 async def list_users(request: Request, page: int = 1, size: int = 20):
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "read", "user", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "read", "user")
 
     async with async_session() as db:
         result = await db.execute(
-            select(User)
-            .where(User.tenant_id == tenant_id, User.deleted_at.is_(None))
+            User.tenant_query(tenant_id)
             .offset((page - 1) * size)
             .limit(size)
         )
@@ -47,18 +43,11 @@ async def list_users(request: Request, page: int = 1, size: int = 20):
 @router.get("/{user_id}")
 async def get_user(user_id: str, request: Request):
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "read", "user", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "read", "user")
 
     async with async_session() as db:
         result = await db.execute(
-            select(User).where(
-                User.id == user_id,
-                User.tenant_id == tenant_id,
-                User.deleted_at.is_(None),
-            )
+            User.tenant_query(tenant_id).where(User.id == user_id)
         )
         user = result.scalar_one_or_none()
         if not user:
@@ -70,21 +59,14 @@ async def get_user(user_id: str, request: Request):
 
 
 @router.put("/{user_id}/status")
-async def update_user_status(user_id: str, request: Request, body: UpdateUserStatusRequest):
+async def update_user_status(user_id: str, request: Request, body: UpdateUserStatusRequest, background_tasks: BackgroundTasks):
     """启用/禁用用户"""
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "update", "user", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "update", "user")
 
     async with async_session() as db:
         result = await db.execute(
-            select(User).where(
-                User.id == user_id,
-                User.tenant_id == tenant_id,
-                User.deleted_at.is_(None),
-            )
+            User.tenant_query(tenant_id).where(User.id == user_id)
         )
         user = result.scalar_one_or_none()
         if not user:
@@ -98,7 +80,8 @@ async def update_user_status(user_id: str, request: Request, body: UpdateUserSta
         session_mgr = SessionManager()
         await session_mgr.invalidate_user_status(user_id)
 
-        await write_audit_log(
+        background_tasks.add_task(
+            write_audit_log,
             tenant_id=tenant_id,
             user_id=request.state.user_id,
             action="update",
@@ -113,16 +96,14 @@ async def update_user_status(user_id: str, request: Request, body: UpdateUserSta
 
 
 @router.post("/{user_id}/roles")
-async def assign_user_role(user_id: str, request: Request, body: AssignRoleRequest):
+async def assign_user_role(user_id: str, request: Request, body: AssignRoleRequest, background_tasks: BackgroundTasks):
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "update", "role", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "update", "role")
 
     ur = await assign_role(user_id, body.role_id, body.scope_id)
 
-    await write_audit_log(
+    background_tasks.add_task(
+        write_audit_log,
         tenant_id=tenant_id,
         user_id=request.state.user_id,
         action="update",

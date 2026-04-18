@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 
 from infrastructure.database import async_session
 from models.audit import AuditLog
-from domains.access.policy import get_policy, PermissionContext
+from domains.access.policy import require_permission
 
 router = APIRouter(prefix="/audit", tags=["audit"])
 
@@ -13,10 +13,7 @@ router = APIRouter(prefix="/audit", tags=["audit"])
 async def query_audit_logs(request: Request, page: int = 1, size: int = 20):
     """分页查询审计日志"""
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "read", "audit", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "read", "audit")
 
     async with async_session() as db:
         # Count total

@@ -51,7 +51,7 @@
 | 代码 Clone | ✅ 仓库已设为 public |
 | .env 配置 | ✅ 强密码已配置 |
 | Docker Build | ✅ 清华 pip 镜像 |
-| 后端容器 | ⚠️ 待修复（服务器代码版本同步） |
+| 后端容器 | ✅ 运行正常（DEBUG=true） |
 | ICP 备案 | ⏳ 管局审核中 |
 | DNS 配置 | ⏳ 备案通过后 |
 | HTTPS | ⏳ Let's Encrypt |

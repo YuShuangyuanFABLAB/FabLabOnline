@@ -2,13 +2,13 @@
 import hashlib
 import secrets
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from infrastructure.database import async_session
 from models.app import App
-from domains.access.policy import get_policy, PermissionContext
+from domains.access.policy import require_permission
 from domains.access.audit import write_audit_log
 
 router = APIRouter(prefix="/apps", tags=["apps"])
@@ -23,10 +23,7 @@ class RegisterAppRequest(BaseModel):
 @router.get("")
 async def list_apps(request: Request):
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "read", "app", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "read", "app")
 
     async with async_session() as db:
         result = await db.execute(select(App).where(App.status == "active"))
@@ -38,12 +35,9 @@ async def list_apps(request: Request):
 
 
 @router.post("")
-async def register_app(request: Request, body: RegisterAppRequest):
+async def register_app(request: Request, body: RegisterAppRequest, background_tasks: BackgroundTasks):
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "create", "app", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "create", "app")
 
     raw_secret = secrets.token_hex(32)
     secret_hash = hashlib.sha256(raw_secret.encode()).hexdigest()
@@ -59,7 +53,8 @@ async def register_app(request: Request, body: RegisterAppRequest):
         await db.commit()
         await db.refresh(app)
 
-    await write_audit_log(
+    background_tasks.add_task(
+        write_audit_log,
         tenant_id=tenant_id,
         user_id=request.state.user_id,
         action="create",
@@ -77,13 +72,10 @@ async def register_app(request: Request, body: RegisterAppRequest):
 
 
 @router.put("/{app_id}/status")
-async def toggle_app_status(app_id: str, request: Request, status: str):
+async def toggle_app_status(app_id: str, request: Request, status: str, background_tasks: BackgroundTasks):
     """切换应用状态（active / disabled）"""
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "update", "app", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "update", "app")
 
     if status not in ("active", "disabled"):
         raise HTTPException(status_code=400, detail="status 必须为 active 或 disabled")
@@ -97,7 +89,8 @@ async def toggle_app_status(app_id: str, request: Request, status: str):
         app.status = status
         await db.commit()
 
-    await write_audit_log(
+    background_tasks.add_task(
+        write_audit_log,
         tenant_id=tenant_id,
         user_id=request.state.user_id,
         action="update",

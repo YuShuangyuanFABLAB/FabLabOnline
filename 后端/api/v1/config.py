@@ -1,14 +1,14 @@
 """Config API — 配置管理（Redis 缓存）"""
 import json
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from infrastructure.database import async_session
 from infrastructure.redis import redis_client
 from models.config import Config as ConfigModel
-from domains.access.policy import get_policy, PermissionContext
+from domains.access.policy import require_permission
 from domains.access.audit import write_audit_log
 
 router = APIRouter(prefix="/config", tags=["config"])
@@ -46,10 +46,7 @@ async def get_config_value(scope: str, scope_id: str | None, key: str) -> dict |
 @router.get("")
 async def get_config(request: Request, scope: str = "global", scope_id: str | None = None, key: str | None = None):
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "read", "config", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "read", "config")
 
     if key:
         value = await get_config_value(scope, scope_id, key)
@@ -68,12 +65,9 @@ async def get_config(request: Request, scope: str = "global", scope_id: str | No
 
 
 @router.put("")
-async def update_config(request: Request, body: UpdateConfigRequest):
+async def update_config(request: Request, body: UpdateConfigRequest, background_tasks: BackgroundTasks):
     tenant_id = request.state.tenant_id
-    policy = get_policy()
-    ctx = PermissionContext(tenant_id=tenant_id)
-    if not await policy.check_permission(request.state.user_id, "update", "config", ctx):
-        raise HTTPException(status_code=403, detail="Permission denied")
+    await require_permission(request, "update", "config")
 
     async with async_session() as db:
         result = await db.execute(
@@ -94,7 +88,8 @@ async def update_config(request: Request, body: UpdateConfigRequest):
     cache_key = f"config:{body.scope}:{body.scope_id or 'global'}:{body.key}"
     await redis_client.delete(cache_key)
 
-    await write_audit_log(
+    background_tasks.add_task(
+        write_audit_log,
         tenant_id=tenant_id,
         user_id=request.state.user_id,
         action="update",

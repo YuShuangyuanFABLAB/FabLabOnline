@@ -8,6 +8,7 @@ from config.settings import settings
 from infrastructure.logging import setup_logging
 from infrastructure.metrics import metrics_endpoint
 from api.middleware import AuthMiddleware
+from api.rate_limit import RateLimitMiddleware
 from api.v1.router import router as v1_router
 
 setup_logging(debug=settings.DEBUG)
@@ -33,6 +34,7 @@ app.add_middleware(
 )
 
 app.add_middleware(AuthMiddleware)
+app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
 app.include_router(v1_router)
 
 
