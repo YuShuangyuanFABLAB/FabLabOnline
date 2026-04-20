@@ -21,6 +21,8 @@ class TestWechatOAuth:
         """回调应换取 openid"""
         from domains.identity.wechat_oauth import WechatOAuth
         with patch("domains.identity.wechat_oauth.redis_client") as mock_redis:
+            import json
+            mock_redis.get = AsyncMock(return_value=json.dumps({"status": "pending"}))
             mock_redis.setex = AsyncMock()
             oauth = WechatOAuth(app_id="test_app_id", app_secret="test_secret", redirect_uri="https://example.com/callback")
 
@@ -42,6 +44,9 @@ class TestWechatOAuth:
         """微信返回错误时应抛异常"""
         from domains.identity.wechat_oauth import WechatOAuth
         with patch("domains.identity.wechat_oauth.redis_client") as mock_redis:
+            import json
+            mock_redis.get = AsyncMock(return_value=json.dumps({"status": "pending"}))
+            mock_redis.setex = AsyncMock()
             oauth = WechatOAuth(app_id="test_app_id", app_secret="test_secret", redirect_uri="https://example.com/callback")
 
             mock_response = MagicMock()

@@ -65,7 +65,7 @@
 
         <div v-if="!qrUrl" class="qr-placeholder">
           <el-icon :size="40" color="var(--fab-text-secondary)"><Connection /></el-icon>
-          <p>二维码加载中...</p>
+          <p>微信扫码暂未开放</p>
         </div>
         <div v-else class="qr-section">
           <img :src="qrUrl" alt="登录二维码" class="qr-img" />

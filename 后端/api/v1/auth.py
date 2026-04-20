@@ -133,7 +133,10 @@ async def check_qr_status(state: str):
 @router.post("/callback")
 async def wechat_callback(code: str, state: str):
     """微信 OAuth 回调 — 换取 openid 后查找/创建用户并签发 JWT"""
-    oauth_result = await oauth.handle_callback(code, state)
+    try:
+        oauth_result = await oauth.handle_callback(code, state)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"微信登录失败，请重试")
 
     # 查找或创建用户
     async with async_session() as db:

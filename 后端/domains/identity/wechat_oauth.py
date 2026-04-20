@@ -49,6 +49,14 @@ class WechatOAuth:
 
     async def handle_callback(self, code: str, state: str) -> dict:
         """处理微信回调，用 code 换 token，返回 openid"""
+        # CSRF 防护：验证 state 参数
+        state_key = f"wx_qr_state:{state}"
+        state_data = await self.redis.get(state_key)
+        if not state_data or json.loads(state_data).get("status") != "pending":
+            raise ValueError("Invalid or expired state parameter")
+        # 标记为 consumed（一次性使用）
+        await self.redis.setex(state_key, 300, json.dumps({"status": "consumed"}))
+
         async with httpx.AsyncClient() as client:
             resp = await client.get(
                 self.TOKEN_URL,
