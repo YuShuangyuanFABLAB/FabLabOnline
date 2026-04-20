@@ -4,7 +4,7 @@ import secrets
 import time
 
 from fastapi import APIRouter, HTTPException, Request, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from config.settings import settings
@@ -14,7 +14,7 @@ from models.user import User
 from domains.identity.wechat_oauth import WechatOAuth
 from domains.identity.token_manager import TokenManager
 from domains.identity.session_manager import SessionManager
-from domains.identity.password import verify_password
+from domains.identity.password import verify_password, hash_password
 from domains.access.roles import get_user_roles
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -247,3 +247,40 @@ async def logout(request: Request):
     )
     response.delete_cookie(key="token")
     return response
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+
+@router.put("/password")
+async def change_password(request: Request, body: ChangePasswordRequest):
+    """修改密码 — 验证旧密码后更新"""
+    user_id = getattr(request.state, "user_id", None)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="未认证")
+
+    from models.config import Config
+
+    async with async_session() as db:
+        # 查询当前密码 hash
+        pw_result = await db.execute(
+            select(Config).where(
+                Config.scope == "user",
+                Config.scope_id == user_id,
+                Config.key == "password_hash",
+            )
+        )
+        pw_config = pw_result.scalar_one_or_none()
+        if not pw_config:
+            raise HTTPException(status_code=401, detail="密码未设置")
+
+        if not verify_password(body.old_password, pw_config.value):
+            raise HTTPException(status_code=401, detail="旧密码错误")
+
+        # 更新为新 hash
+        pw_config.value = json.dumps(hash_password(body.new_password))
+        await db.commit()
+
+    return {"success": True}
