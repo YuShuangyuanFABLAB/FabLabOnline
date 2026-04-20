@@ -1,4 +1,8 @@
+import logging
+
 from pydantic_settings import BaseSettings
+
+logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -49,6 +53,16 @@ class Settings(BaseSettings):
                 raise ValueError(
                     f"JWT_SECRET_KEY 长度不足 32 字符（当前 {len(self.JWT_SECRET_KEY)} 字符）"
                 )
+            if not self.ADMIN_PASSWORD:
+                logger.warning("ADMIN_PASSWORD 未设置，将使用默认密码")
+            if self.DOCS_ENABLED:
+                logger.warning("生产环境建议关闭 API 文档 (DOCS_ENABLED=false)")
+            if not self.CORS_ORIGINS:
+                logger.warning("CORS_ORIGINS 为空，仅允许 localhost 访问")
+            wechat_has_id = bool(self.WECHAT_APP_ID)
+            wechat_has_secret = bool(self.WECHAT_APP_SECRET)
+            if wechat_has_id != wechat_has_secret:
+                raise ValueError("微信配置必须同时填写或同时留空")
 
 
 settings = Settings()
