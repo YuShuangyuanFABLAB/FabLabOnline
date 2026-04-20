@@ -31,9 +31,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # 清理过期记录
         while hits and hits[0] < cutoff:
             hits.pop(0)
-        if len(hits) >= self.limit:
+        # 清理空条目防止内存泄漏
+        if not hits:
+            del self._hits[key]
+        elif len(hits) >= self.limit:
             return True
-        hits.append(now)
+        self._hits[key].append(now)
         return False
 
     async def dispatch(self, request: Request, call_next):
