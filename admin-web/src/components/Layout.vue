@@ -95,6 +95,10 @@
                 <el-dropdown-item disabled>
                   {{ authStore.highestRole }}
                 </el-dropdown-item>
+                <el-dropdown-item command="password">
+                  <el-icon><Lock /></el-icon>
+                  修改密码
+                </el-dropdown-item>
                 <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon>
                   退出登录
@@ -132,6 +136,7 @@ import {
   Sunny,
   ArrowDown,
   SwitchButton,
+  Lock,
 } from '@element-plus/icons-vue'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
@@ -152,6 +157,7 @@ const pageTitles: Record<string, string> = {
   '/roles': '角色管理',
   '/apps': '应用管理',
   '/config': '系统配置',
+  '/password': '修改密码',
 }
 
 const pageTitle = computed(() => pageTitles[route.path] ?? '法贝实验室')
@@ -176,6 +182,7 @@ function showMenu(resource: string): boolean {
 
 function onDropdownCommand(cmd: string) {
   if (cmd === 'logout') handleLogout()
+  if (cmd === 'password') router.push('/password')
 }
 
 async function handleLogout() {

@@ -54,19 +54,38 @@ const router = createRouter({
           name: 'config',
           component: () => import('../views/ConfigView.vue'),
         },
+        {
+          path: 'password',
+          name: 'password',
+          component: () => import('../views/PasswordView.vue'),
+        },
       ],
     },
   ],
 })
 
-// Route guard — check auth via heartbeat (cookie-based)
+// Route guard — check auth via heartbeat (cookie-based) + role-based access
+const roleRequired: Record<string, string[]> = {
+  '/roles': ['super_admin'],
+  '/users': ['super_admin', 'admin'],
+  '/campuses': ['super_admin', 'admin'],
+  '/config': ['super_admin'],
+  '/apps': ['super_admin'],
+}
+
 router.beforeEach(async (to) => {
   if (to.path === '/login') return true
 
   const authStore = useAuthStore()
 
-  // Already have user info — allow
-  if (authStore.user) return true
+  // Already have user info — check role and allow
+  if (authStore.user) {
+    const required = roleRequired[to.path]
+    if (required && !required.some(r => authStore.roles.includes(r))) {
+      return '/'
+    }
+    return true
+  }
 
   // Try to restore user info via heartbeat (uses HttpOnly cookie)
   try {
@@ -80,6 +99,11 @@ router.beforeEach(async (to) => {
         tenant_id: hbData.tenant_id || 'default',
         roles: hbData.roles || [],
       })
+      // Role-based route guard (UX only — backend enforces permissions)
+      const required = roleRequired[to.path]
+      if (required && !required.some(r => authStore.roles.includes(r))) {
+        return '/'
+      }
       return true
     }
   } catch {
