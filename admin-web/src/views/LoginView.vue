@@ -29,8 +29,8 @@
         <h2 class="form-title">欢迎登录</h2>
         <p class="form-desc">登录以访问管理后台</p>
 
-        <el-form @submit.prevent="handleLogin" class="login-form">
-          <el-form-item>
+        <el-form @submit.prevent="handleLogin" class="login-form" :model="formState" :rules="formRules">
+          <el-form-item prop="userId">
             <el-input
               v-model="userId"
               placeholder="用户 ID"
@@ -38,7 +38,7 @@
               prefix-icon="User"
             />
           </el-form-item>
-          <el-form-item>
+          <el-form-item prop="password">
             <el-input
               v-model="password"
               type="password"
@@ -77,9 +77,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import type { FormRules } from 'element-plus'
 import { DataLine, User, TrendCharts, Connection } from '@element-plus/icons-vue'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
@@ -90,6 +91,26 @@ const authStore = useAuthStore()
 const userId = ref('')
 const password = ref('')
 const loading = ref(false)
+
+const formState = reactive({ userId, password })
+const formRules: FormRules = {
+  userId: [{ required: true, message: '请输入用户 ID', trigger: 'blur' }],
+  password: [{ required: true, min: 6, message: '密码至少 6 位', trigger: 'blur' }],
+}
+
+const ERROR_MAP: Record<string, string> = {
+  '用户不存在': '账号不存在，请检查用户 ID',
+  '密码错误': '密码不正确，请重新输入',
+  '密码未设置': '该账号未设置密码，请联系管理员',
+}
+
+function friendlyError(detail: string): string {
+  if (!detail) return '登录失败，请重试'
+  for (const [key, msg] of Object.entries(ERROR_MAP)) {
+    if (detail.includes(key)) return msg
+  }
+  return detail
+}
 
 const qrUrl = ref('')
 const qrState = ref('')
@@ -109,8 +130,14 @@ async function handleLogin() {
     ElMessage.success('登录成功')
     router.push('/')
   } catch (e: unknown) {
-    const err = e as { response?: { data?: { detail?: string } } }
-    ElMessage.error(err.response?.data?.detail || '登录失败')
+    const err = e as { response?: { status?: number; data?: { detail?: string } } }
+    const status = err.response?.status
+    const detail = err.response?.data?.detail || ''
+    if (status === 429) {
+      ElMessage.warning('登录失败次数过多，请稍后再试')
+    } else {
+      ElMessage.error(friendlyError(detail))
+    }
   } finally {
     loading.value = false
   }
