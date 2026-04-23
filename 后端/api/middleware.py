@@ -17,6 +17,7 @@ EXEMPT_PATHS = (
     "/api/v1/auth/qrcode",
     "/api/v1/auth/callback",
     "/api/v1/auth/login",
+    "/api/v1/auth/totp/verify",
 )
 
 _token_manager = TokenManager()

@@ -41,10 +41,13 @@ class TestSameSiteStrict:
         pw_result = MagicMock()
         pw_result.scalar_one_or_none = MagicMock(return_value=pw_config)
 
+        totp_result = MagicMock()
+        totp_result.scalar_one_or_none = MagicMock(return_value=None)
+
         mock_ctx = AsyncMock()
         mock_ctx.__aenter__ = AsyncMock(return_value=mock_ctx)
         mock_ctx.__aexit__ = AsyncMock(return_value=False)
-        mock_ctx.execute = AsyncMock(side_effect=[mock_result, pw_result])
+        mock_ctx.execute = AsyncMock(side_effect=[mock_result, pw_result, totp_result])
         mock_ctx.commit = AsyncMock()
         mock_db.return_value = mock_ctx
 

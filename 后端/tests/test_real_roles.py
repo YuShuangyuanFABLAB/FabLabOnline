@@ -27,6 +27,7 @@ class TestLoginReturnsRealRoles:
         mock_db.execute = AsyncMock(side_effect=[
             MagicMock(scalar_one_or_none=MagicMock(return_value=mock_user)),
             MagicMock(scalar_one_or_none=MagicMock(return_value=mock_pw_config)),
+            MagicMock(scalar_one_or_none=MagicMock(return_value=None)),
         ])
         mock_db.__aenter__ = AsyncMock(return_value=mock_db)
         mock_db.__aexit__ = AsyncMock(return_value=False)
@@ -74,6 +75,7 @@ class TestLoginReturnsRealRoles:
         mock_db.execute = AsyncMock(side_effect=[
             MagicMock(scalar_one_or_none=MagicMock(return_value=mock_user)),
             MagicMock(scalar_one_or_none=MagicMock(return_value=mock_pw_config)),
+            MagicMock(scalar_one_or_none=MagicMock(return_value=None)),
         ])
         mock_db.__aenter__ = AsyncMock(return_value=mock_db)
         mock_db.__aexit__ = AsyncMock(return_value=False)

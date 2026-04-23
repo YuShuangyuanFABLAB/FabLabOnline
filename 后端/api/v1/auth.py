@@ -15,6 +15,7 @@ from domains.identity.wechat_oauth import WechatOAuth
 from domains.identity.token_manager import TokenManager
 from domains.identity.session_manager import SessionManager
 from domains.identity.password import verify_password, hash_password
+from domains.identity.totp import generate_totp_secret, verify_totp_code, get_totp_uri
 from domains.access.roles import get_user_roles
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -76,6 +77,33 @@ async def password_login(body: LoginRequest):
         if not verify_password(body.password, stored_hash):
             await _record_failure(key)
             raise HTTPException(status_code=401, detail="密码错误")
+
+        # 检查 TOTP 二次验证
+        from models.config import Config
+        totp_result = await db.execute(
+            select(Config).where(
+                Config.scope == "user",
+                Config.scope_id == body.user_id,
+                Config.key == "totp_secret",
+            )
+        )
+        totp_config = totp_result.scalar_one_or_none()
+        if totp_config:
+            totp_data = json.loads(totp_config.value) if isinstance(totp_config.value, str) else totp_config.value
+            if totp_data.get("enabled"):
+                # 生成 challenge 存入 Redis，等待 TOTP 码验证
+                challenge = secrets.token_hex(16)
+                challenge_key = f"totp_challenge:{challenge}"
+                await redis_client.setex(
+                    challenge_key, 300,
+                    json.dumps({
+                        "user_id": user.id,
+                        "tenant_id": user.tenant_id,
+                        "totp_secret": totp_data["secret"],
+                    }),
+                )
+                await redis_client.delete(key)
+                return {"totp_required": True, "totp_challenge": challenge}
 
     # ── 登录成功：清除失败计数 ──
     await redis_client.delete(key)
@@ -284,3 +312,84 @@ async def change_password(request: Request, body: ChangePasswordRequest):
         await db.commit()
 
     return {"success": True}
+
+
+# ── TOTP 二次验证 ──
+
+class TotpVerifyRequest(BaseModel):
+    challenge: str
+    code: str = Field(..., min_length=6, max_length=6)
+
+
+@router.post("/totp/verify")
+async def verify_totp(body: TotpVerifyRequest):
+    """验证 TOTP 码 — 登录二次验证"""
+    challenge_key = f"totp_challenge:{body.challenge}"
+    data = await redis_client.get(challenge_key)
+    if not data:
+        raise HTTPException(status_code=401, detail="验证已过期，请重新登录")
+
+    challenge_data = json.loads(data)
+    secret = challenge_data["totp_secret"]
+    if not verify_totp_code(secret, body.code):
+        raise HTTPException(status_code=401, detail="验证码错误")
+
+    # TOTP 验证通过，签发 JWT
+    await redis_client.delete(challenge_key)
+
+    user_id = challenge_data["user_id"]
+    tenant_id = challenge_data["tenant_id"]
+
+    user_roles = await get_user_roles(user_id)
+    role_ids = list({r["role_id"] for r in user_roles})
+
+    token = token_mgr.create_token(user_id=user_id, tenant_id=tenant_id)
+    await session_mgr.cache_user_status(user_id, "active")
+
+    response = Response(
+        content=json.dumps({"data": {"user": {
+            "id": user_id, "tenant_id": tenant_id, "roles": role_ids,
+        }}}),
+        media_type="application/json",
+        status_code=200,
+    )
+    response.set_cookie(
+        key="token", value=token,
+        httponly=True, secure=not settings.DEBUG,
+        samesite="strict", max_age=settings.JWT_EXPIRE_DAYS * 86400,
+    )
+    return response
+
+
+@router.post("/totp/setup")
+async def setup_totp(request: Request):
+    """生成 TOTP 密钥 — 供用户绑定 authenticator app"""
+    user_id = getattr(request.state, "user_id", None)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="未认证")
+
+    from models.config import Config
+
+    secret = generate_totp_secret()
+    uri = get_totp_uri(secret, user_id)
+
+    async with async_session() as db:
+        # 查询是否已有 TOTP 配置
+        result = await db.execute(
+            select(Config).where(
+                Config.scope == "user",
+                Config.scope_id == user_id,
+                Config.key == "totp_secret",
+            )
+        )
+        existing = result.scalar_one_or_none()
+        if existing:
+            existing.value = json.dumps({"secret": secret, "enabled": True})
+        else:
+            db.add(Config(
+                scope="user", scope_id=user_id, key="totp_secret",
+                value=json.dumps({"secret": secret, "enabled": True}),
+            ))
+        await db.commit()
+
+    return {"secret": secret, "uri": uri}

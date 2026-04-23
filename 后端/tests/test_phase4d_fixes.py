@@ -91,7 +91,9 @@ class TestLoginResponseSafety:
             pw_config = MagicMock()
             pw_config.value = json.dumps({"hash": "x"})
             pw_result.scalar_one_or_none.return_value = pw_config
-            mock_db.execute.side_effect = [user_result, pw_result]
+            totp_result = MagicMock()
+            totp_result.scalar_one_or_none.return_value = None
+            mock_db.execute.side_effect = [user_result, pw_result, totp_result]
 
             result = await password_login(
                 body=MagicMock(user_id='user"with"quotes', password="pass")

@@ -95,7 +95,10 @@ class TestLoginRateLimit:
                 mock_result_pw = MagicMock()
                 mock_result_pw.scalar_one_or_none.return_value = mock_pw
 
-                mock_db.execute.side_effect = [mock_result_user, mock_result_pw]
+                totp_result = MagicMock()
+                totp_result.scalar_one_or_none.return_value = None
+
+                mock_db.execute.side_effect = [mock_result_user, mock_result_pw, totp_result]
 
                 resp = await client.post("/api/v1/auth/login", json={
                     "user_id": "admin",
